@@ -246,24 +246,29 @@ for e in range(data.shape[0]):
         for residue_C in structure[0][VH_id]:
             if any(str(residue_C.get_resname()) == x for x in aa_list):         ### Only include if the residue is an amino acid
 
-                resi_tot = resi_tot+1
-
                 if residue_C.get_id()[1] < 27:
+                    resi_tot = resi_tot + 1
                     VH_FR1 = VH_FR1+1
                 elif 27 <= residue_C.get_id()[1] <= 38:
+                    resi_tot = resi_tot + 1
                     VH_CDR1 = VH_CDR1+1
                     CDR_tot = CDR_tot + 1
                 elif 39 <= residue_C.get_id()[1] <= 55:
+                    resi_tot = resi_tot + 1
                     VH_FR2 = VH_FR2+1
                 elif 56 <= residue_C.get_id()[1] <= 65:
+                    resi_tot = resi_tot + 1
                     VH_CDR2 = VH_CDR2+1
                     CDR_tot = CDR_tot + 1
                 elif 66 <= residue_C.get_id()[1] <= 104:
+                    resi_tot = resi_tot + 1
                     VH_FR3 = VH_FR3+1
                 elif 105 <= residue_C.get_id()[1] <= 117:
+                    resi_tot = resi_tot + 1
                     VH_CDR3 = VH_CDR3+1
                     CDR_tot = CDR_tot + 1
                 elif 118 <= residue_C.get_id()[1] <= 128:
+                    resi_tot = resi_tot + 1
                     VH_FR4 = VH_FR4+1
 
     # If a VL id is given in the summary file count residues in the different domains
@@ -271,24 +276,29 @@ for e in range(data.shape[0]):
         for residue_D in structure[0][VL_id]:
             if any(str(residue_D.get_resname()) == x for x in aa_list):         ### Only include if the residue is an amino acid
 
-                resi_tot = resi_tot + 1
-
                 if residue_D.get_id()[1] < 27:
+                    resi_tot = resi_tot + 1
                     VL_FR1 = VL_FR1+1
                 elif 27 <= residue_D.get_id()[1] <= 38:
+                    resi_tot = resi_tot + 1
                     VL_CDR1 = VL_CDR1+1
                     CDR_tot = CDR_tot + 1
                 elif 39 <= residue_D.get_id()[1] <= 55:
+                    resi_tot = resi_tot + 1
                     VL_FR2 = VL_FR2+1
                 elif 56 <= residue_D.get_id()[1] <= 65:
+                    resi_tot = resi_tot + 1
                     VL_CDR2 = VL_CDR2+1
                     CDR_tot = CDR_tot + 1
                 elif 66 <= residue_D.get_id()[1] <= 104:
+                    resi_tot = resi_tot + 1
                     VL_FR3 = VL_FR3+1
                 elif 105 <= residue_D.get_id()[1] <= 117:
+                    resi_tot = resi_tot + 1
                     VL_CDR3 = VL_CDR3+1
                     CDR_tot = CDR_tot + 1
                 elif 118 <= residue_D.get_id()[1] <= 128:
+                    resi_tot = resi_tot + 1
                     VL_FR4 = VL_FR4+1
     
 #    if VH_id.find('nan') < 0 and VL_id.find('nan') < 0:         ### Append the Ab chains to the chain list

@@ -25,6 +25,7 @@ for a in range(Summary_data.shape[0]):
     elif VH_id == 'nan' and VL_id != 'nan':
         Ab_type = 'VL sdAb'
     else:
+        Ab_type = 'N/A'
         print('Ab type not recognized!')
 
     Ab_type_list.append(Ab_type)
