@@ -49,7 +49,7 @@ aa_dict = {'ARG':'R' , 'HIS':'H', 'LYS':'K', 'ASP':'D', 'GLU':'E', 'SER':'S', 'T
 
 # Specify the summary file
 data = pd.read_csv('Summary_all.tsv', sep='\t',header=0)
-thera_data = pd.read_csv('Summary_thera.tsv', sep='\t',header=0)
+thera_data = pd.read_csv('Thera_all.tsv', sep='\t',header=0)
 thera_pdb_list = thera_data['pdb'].tolist()
 
 # Load parser
