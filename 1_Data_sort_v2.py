@@ -1,5 +1,5 @@
 import pandas as pd
-from bio.PDB import *
+from Bio.PDB import *
 import statistics
 
 # Loading functions
