@@ -23,7 +23,22 @@ path = '/work1/avima/Ab_interface/imgt_clean_all_protein_align/'
 contact_cutoff = 5
 ###
 
-pdb_type = 'Protein'
+Ag_group_list = pdb_data['Antigen group'].tolist()
+
+VH_FR1_ref_list = pdb_data['#aa in VH FR1 (ref)'].tolist()
+VH_CDR1_ref_list = pdb_data['#aa in VH CDR1 (ref)'].tolist()
+VH_FR2_ref_list = pdb_data['#aa in VH FR2 (ref)'].tolist()
+VH_CDR2_ref_list = pdb_data['#aa in VH CDR2 (ref)'].tolist()
+VH_FR3_ref_list = pdb_data['#aa in VH FR3 (ref)'].tolist()
+VH_CDR3_ref_list = pdb_data['#aa in VH CDR3 (ref)'].tolist()
+VH_FR4_ref_list = pdb_data['#aa in VH FR4 (ref)'].tolist()
+VL_FR1_ref_list = pdb_data['#aa in VL FR1 (ref)'].tolist()
+VL_CDR1_ref_list = pdb_data['#aa in VL CDR1 (ref)'].tolist()
+VL_FR2_ref_list = pdb_data['#aa in VL FR2 (ref)'].tolist()
+VL_CDR2_ref_list = pdb_data['#aa in VL CDR2 (ref)'].tolist()
+VL_FR3_ref_list = pdb_data['#aa in VL FR3 (ref)'].tolist()
+VL_CDR3_ref_list = pdb_data['#aa in VL CDR3 (ref)'].tolist()
+VL_FR4_ref_list = pdb_data['#aa in VL FR4 (ref)'].tolist()
 
 parser = PDBParser()
 ppb = PPBuilder()
@@ -299,9 +314,7 @@ def writing_raw(pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_
         master_dict_raw['Ab_resi_id_list_raw'].append(Ab_resi_id)
         master_dict_raw['Ab_atom_list_raw'].append(Ab_atom_id)
         master_dict_raw['Ab_atom_coord_list_raw'].append(Ab_atom_coord)
-        
-    else:
-        None
+
     
 
 # Initialize variables for run
@@ -355,9 +368,9 @@ master_dict_raw['Ab_resi_aa_list_raw'] = []
 master_dict_raw['Ab_atom_list_raw'] = []
 master_dict_raw['Ab_atom_coord_list_raw'] = []
 
-for a in domain_list:
+#for a in domain_list:
 
-    master_dict['#aa in ' + str(a) + ' (reference data)'] = []
+#    master_dict['#aa in ' + str(a) + ' (reference data)'] = []
 
 
 def main(a):
@@ -377,7 +390,10 @@ def main(a):
     #dssp_tuple = DSSP(structure[0], pdb1, dssp='/work1/avima/Ab_interface/Data_extract/dssp-2.0.4-linux-amd64')
     #dssp_dict = dssp_tuple[0]
     dssp_dict = DSSP(structure[0], pdb1, dssp='/work1/avima/Ab_interface/Data_extract/dssp-2.0.4-linux-amd64')
-    
+
+    # Get antigen type
+    pdb_type = Ag_group_list[a]
+
     # Get structure resolution
     resolution = pdb_data.iloc[a][16]
     
@@ -404,7 +420,7 @@ def main(a):
     elif Ab_type == 'VL sdAb':
         Ab_id_list = [VL_id]
     
-    domain_count_dict = domain_count(structure, Ab_type, VH_id, VL_id, domain_list)
+    #domain_count_dict = domain_count(structure, Ab_type, VH_id, VL_id, domain_list)
 
     # Create for loop that iterates through all antibody chains
     for Ab_idx in Ab_id_list:
@@ -523,22 +539,20 @@ def main(a):
                                         master_dict['H_chain_organism_list'].append(VH_organism)
                                         master_dict['L_chain_organism_list'].append(VL_organism)
 
-                                        master_dict['#aa in VH FR1 (reference data)'] = domain_count_dict['VH_FR1_ref_count']
-                                        master_dict['#aa in VH CDR1 (reference data)'] = domain_count_dict['VH_CDR1_ref_count']
-                                        master_dict['#aa in VH FR2 (reference data)'] = domain_count_dict['VH_FR2_ref_count']
-                                        master_dict['#aa in VH CDR2 (reference data)'] = domain_count_dict['VH_CDR2_ref_count']
-                                        master_dict['#aa in VH FR3 (reference data)'] = domain_count_dict['VH_FR3_ref_count']
-                                        master_dict['#aa in VH CDR3 (reference data)'] = domain_count_dict['VH_CDR3_ref_count']
-                                        master_dict['#aa in VH FR4 (reference data)'] = domain_count_dict['VH_FR4_ref_count']
-                                        master_dict['#aa in VL FR1 (reference data)'] = domain_count_dict['VL_FR1_ref_count']
-                                        master_dict['#aa in VL CDR1 (reference data)'] = domain_count_dict['VL_CDR1_ref_count']
-                                        master_dict['#aa in VL FR2 (reference data)'] = domain_count_dict['VL_FR2_ref_count']
-                                        master_dict['#aa in VL CDR2 (reference data)'] = domain_count_dict['VL_CDR2_ref_count']
-                                        master_dict['#aa in VL FR3 (reference data)'] = domain_count_dict['VL_FR3_ref_count']
-                                        master_dict['#aa in VL CDR3 (reference data)'] = domain_count_dict['VL_CDR3_ref_count']
-                                        master_dict['#aa in VL FR4 (reference data)'] = domain_count_dict['VL_FR4_ref_count']
-
-
+                                        master_dict['#aa in VH FR1 (reference data)'] = VH_FR1_ref_list[a]
+                                        master_dict['#aa in VH CDR1 (reference data)'] = VH_CDR1_ref_list[a]
+                                        master_dict['#aa in VH FR2 (reference data)'] = VH_FR2_ref_list[a]
+                                        master_dict['#aa in VH CDR2 (reference data)'] = VH_CDR2_ref_list[a]
+                                        master_dict['#aa in VH FR3 (reference data)'] = VH_FR3_ref_list[a]
+                                        master_dict['#aa in VH CDR3 (reference data)'] = VH_CDR3_ref_list[a]
+                                        master_dict['#aa in VH FR4 (reference data)'] = VH_FR4_ref_list[a]
+                                        master_dict['#aa in VL FR1 (reference data)'] = VL_FR1_ref_list[a]
+                                        master_dict['#aa in VL CDR1 (reference data)'] = VL_CDR1_ref_list[a]
+                                        master_dict['#aa in VL FR2 (reference data)'] = VL_FR2_ref_list[a]
+                                        master_dict['#aa in VL CDR2 (reference data)'] = VL_CDR2_ref_list[a]
+                                        master_dict['#aa in VL FR3 (reference data)'] = VL_FR3_ref_list[a]
+                                        master_dict['#aa in VL CDR3 (reference data)'] = VL_CDR3_ref_list[a]
+                                        master_dict['#aa in VL FR4 (reference data)'] = VL_FR4_ref_list[a]
                                         
     df_test = pd.DataFrame(data=master_dict)
     df_test_raw = pd.DataFrame(data=master_dict_raw)
