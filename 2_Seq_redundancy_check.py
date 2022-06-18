@@ -47,9 +47,14 @@ with open("Cluster.txt", "r") as a_file:
 Used_cluster_combi = []
 Final_list = []
 
+# The Cluster_ID_list contains a list of lists. Each of these lists are representing a unique pdb. 
+# Each element represent the alignment cluster that the antibody chains from the pdb falls into
 Cluster_ID_list_unique = []
 [Cluster_ID_list_unique.append(x) for x in Cluster_ID_list if x not in Cluster_ID_list_unique]
 
+# Go through all unique cluster id combinations. For each combination look through the full list of combinations and store the index of this combination. 
+# The point is to see if this specific combination of clusters appear more than once. The reason for doing this is to allow inclusion of common light chain antibodies. 
+# So even if a VH1 show similarity to another VH2 in a given cluster. If VL1 does not share similarity with VL2 in a corresponding cluster then the antibody is considered unique. 
 for j in range(len(Cluster_ID_list_unique)):
     
     Cluster_combi = Cluster_ID_list_unique[j]
@@ -59,9 +64,12 @@ for j in range(len(Cluster_ID_list_unique)):
             if Cluster_ID_list[a] == Cluster_combi:
                 index_list.append(a)
     
+    # Only one entry in the index_list show the antibody does not share similarity with any other Abs in the data. 
     if len(index_list) == 1:
         Final_list.append(pdb_list[index_list[0]])
     
+    # If more than one index is found redundant antibodies have been found. 
+    # If this is the case antibodies with affinity values are prioritized and otherwise we just take the structure with best resolution.
     elif len(index_list) > 1:
         data_with_aff = []
         for b in index_list:
@@ -90,7 +98,6 @@ for j in range(len(Cluster_ID_list_unique)):
                     candidate_index = d
         
             Final_list.append(pdb_list[candidate_index])
-
 
 for i in range(Summary_data.shape[0]):
     if Final_list.count(Summary_data['pdb'][i]) == 1:
