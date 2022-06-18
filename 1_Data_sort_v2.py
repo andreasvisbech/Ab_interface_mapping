@@ -1,5 +1,5 @@
 import pandas as pd
-from Bio.PDB import *
+from bio.PDB import *
 import statistics
 
 # Loading functions
@@ -72,7 +72,8 @@ for a in range(len(pdb_list)):
         None          
 data = data.drop(labels=drop_list, axis=0)
 
-### Create for loop with the purpose of removing duplicate biological units in the crystal structure. The loop should go over the individual complexes and only continue with the complex that has lowest average b factor 
+# Create for loop with the purpose of removing duplicate biological units in the crystal structure.
+# The loop should go over the individual complexes and only continue with the complex that has lowest average b factor
 pdb_list_unique = data['pdb'].drop_duplicates().tolist()
 
 pd_list = []
@@ -92,7 +93,8 @@ for b in range(len(pdb_list_unique)):
     # Getting data from dataframe relating to the specific pdb
     my_pd = data[data['pdb'] == pdb_list_unique[b]]
     
-    # Check how many rows in the remaining data rows contain the pdb id. Since each row in summary files represents a single biological unit multiple rows indicate the crystal
+    # Check how many rows in the remaining data rows contain the pdb id.
+    # Since each row in summary files represents a single biological unit multiple rows indicate the crystal
     # contains more than one biological unit. If only one row is present there is no redundant data in the crystal.
     if my_pd.shape[0] == 1:
         pd_list.append(my_pd.iloc[0].tolist())
@@ -134,16 +136,15 @@ for b in range(len(pdb_list_unique)):
             
             bfactor_list = []
             
-            #total_CDR = 0
+            # Go over all atoms in antibody and get bfactors for each atom
             for chain_ID in Ab_chain_list:
                 for residue_A in structure[0][chain_ID]:
-                    if any(str(residue_A.get_resname()) == x for x in aa_list):         ### Only include if the residue is an amino acid
-                        #if 27 <= residue_A.get_id()[1] <= 38 or 56 <= residue_A.get_id()[1] <= 65 or 105 <= residue_A.get_id()[1] <= 117:
-                        #    total_CDR = total_CDR + 1
+                    if any(str(residue_A.get_resname()) == x for x in aa_list): # Only include if the residue is an amino acid
                         
                         for atom_A in residue_A:
                             bfactor_list.append(atom_A.get_bfactor())
-                            
+
+            # Go over all atoms in antigen and get bfactors for each atom
             for chain_ID in Ag_chain_list:
                 for residue_B in structure[0][chain_ID]:
                     if any(str(residue_B.get_resname()) == x for x in aa_list):         ### Only include if the residue is an amino acid
@@ -152,8 +153,8 @@ for b in range(len(pdb_list_unique)):
     
             bfactor_avr.append(statistics.mean(bfactor_list))
 
-        bfactor_min = bfactor_avr.index(min(bfactor_avr))
-        pd_list.append(my_pd.iloc[bfactor_min].tolist())
+        bfactor_min_idx = bfactor_avr.index(min(bfactor_avr))
+        pd_list.append(my_pd.iloc[bfactor_min_idx].tolist())
 
 data = pd.DataFrame(data=pd_list, columns=data.columns.values)          
 
@@ -232,7 +233,6 @@ for e in range(data.shape[0]):
     VL_CDR3 = 0
     VL_FR4 = 0
     
-    
     pdb3 = str('./imgt_all_clean/' + str(data['pdb'][e]) + '.pdb')
     structure = parser.get_structure("structure", pdb3)
     
@@ -248,7 +248,7 @@ for e in range(data.shape[0]):
         VH_id = str(data.iloc[e][1])
         VL_id = str(data.iloc[e][2])
         Ab_chain_list.append(VH_id)
-        Ab_chain_list.append(Vl_id)
+        Ab_chain_list.append(VL_id)
         
         for residue_C in structure[0][VH_id]:
             if any(str(residue_C.get_resname()) == x for x in aa_list):         ### Only include if the residue is an amino acid   

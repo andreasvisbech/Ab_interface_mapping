@@ -19,9 +19,6 @@ pdb_data = pd.read_csv('/work1/avima/Ab_interface/Data_extract/Summary_all_sorte
 # Setting path for the pdb files
 path = '/work1/avima/Ab_interface/imgt_clean_all_protein_align/'
 
-# File for writing HPC docu
-#f = open('/work1/avima/Ab_interface/Data_extract/progress.txt', 'w')
-
 # Distance cutoff
 contact_cutoff = 5
 ###
