@@ -222,7 +222,7 @@ for e in range(data.shape[0]):
     VH_CDR2 = 0
     VH_FR3 = 0
     VH_CDR3 = 0
-    VH FR4 = 0
+    VH_FR4 = 0
     
     VL_FR1 = 0
     VL_CDR1 = 0
@@ -230,7 +230,7 @@ for e in range(data.shape[0]):
     VL_CDR2 = 0
     VL_FR3 = 0
     VL_CDR3 = 0
-    VL FR4 = 0
+    VL_FR4 = 0
     
     
     pdb3 = str('./imgt_all_clean/' + str(data['pdb'][e]) + '.pdb')
@@ -361,19 +361,19 @@ for e in range(data.shape[0]):
     VL_FR4_list.append(VL_FR4)
 
 CDR_data = pd.DataFrame({'Total CDR residues':CDR_tot_list , 
-                         '#aa in VH FR1 (ref)':VH_FR1_list},
-                         '#aa in VH CDR1 (ref)':VH_CDR1_list},
-                         '#aa in VH FR2 (ref)':VH_FR2_list},
-                         '#aa in VH CDR2 (ref)':VH_CDR2_list},
-                         '#aa in VH FR3 (ref)':VH_FR3_list},
-                         '#aa in VH CDR3 (ref)':VH_CDR3_list},
-                         '#aa in VH FR4 (ref)':VH_FR4_list},
-                         '#aa in VL FR1 (ref)':VL_FR1_list},
-                         '#aa in VL CDR1 (ref)':VL_CDR1_list},
-                         '#aa in VL FR2 (ref)':VL_FR2_list},
-                         '#aa in VL CDR2 (ref)':VL_CDR2_list},
-                         '#aa in VL FR3 (ref)':VL_FR3_list},
-                         '#aa in VL CDR3 (ref)':VL_CDR3_list},
+                         '#aa in VH FR1 (ref)':VH_FR1_list,
+                         '#aa in VH CDR1 (ref)':VH_CDR1_list,
+                         '#aa in VH FR2 (ref)':VH_FR2_list,
+                         '#aa in VH CDR2 (ref)':VH_CDR2_list,
+                         '#aa in VH FR3 (ref)':VH_FR3_list,
+                         '#aa in VH CDR3 (ref)':VH_CDR3_list,
+                         '#aa in VH FR4 (ref)':VH_FR4_list,
+                         '#aa in VL FR1 (ref)':VL_FR1_list,
+                         '#aa in VL CDR1 (ref)':VL_CDR1_list,
+                         '#aa in VL FR2 (ref)':VL_FR2_list,
+                         '#aa in VL CDR2 (ref)':VL_CDR2_list,
+                         '#aa in VL FR3 (ref)':VL_FR3_list,
+                         '#aa in VL CDR3 (ref)':VL_CDR3_list,
                          '#aa in VL FR4 (ref)':VL_FR4_list}
                           )
 data4 = pd.concat([data,CDR_data] , axis=1)
