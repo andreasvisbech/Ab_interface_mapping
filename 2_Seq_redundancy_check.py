@@ -18,15 +18,16 @@ for a in range(Summary_data.shape[0]):
     VH_id = str(Summary_data.iloc[a][1])
     VL_id = str(Summary_data.iloc[a][2])
     
-    if VH_id != 'nan' and VL_id =! 'nan':
+    if VH_id != 'nan' and VL_id != 'nan':
         Ab_type = 'Fv'
     elif VH_id != 'nan' and VL_id == 'nan':
         Ab_type = 'VH sdAb' 
-    elif VH_id == 'nan' and VL_id =! 'nan'::
+    elif VH_id == 'nan' and VL_id != 'nan':
         Ab_type = 'VL sdAb'  
 
     Ab_type_list.append(Ab_type)
 
+# Make a list with empty lists for storing cluster IDs in. Each list corresponds to the specific pdb identifier
 Cluster_ID_list = [ [] for _ in range(len(pdb_list)) ]
 
 with open("Cluster.txt", "r") as a_file:
@@ -36,7 +37,9 @@ with open("Cluster.txt", "r") as a_file:
         if line.count('>Cluster'):
             Cluster_ID = Cluster_ID + 1             # If new cluster is identified add to counter
 
-        #
+        # In the specific line go over all the pdb entries and see if any of them match.
+        # If the pdb entry is found on the line this specific cluster id is added to the list with index mathing
+        # the pdb.
         for i in range(len(pdb_list)):
             if line.count(pdb_list[i]) > 0:
                 Cluster_ID_list[i].append(Cluster_ID)
