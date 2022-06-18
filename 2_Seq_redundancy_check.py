@@ -23,7 +23,9 @@ for a in range(Summary_data.shape[0]):
     elif VH_id != 'nan' and VL_id == 'nan':
         Ab_type = 'VH sdAb' 
     elif VH_id == 'nan' and VL_id != 'nan':
-        Ab_type = 'VL sdAb'  
+        Ab_type = 'VL sdAb'
+    else:
+        print('Ab type not recognized!')
 
     Ab_type_list.append(Ab_type)
 
