@@ -18,6 +18,8 @@ def get_Ab_type(VH_id, VL_id):
     elif VH_id.find('nan') >= 0 and VL_id.find('nan') < 0:
         func_var = 'VL sdAb'
         #func_dict['Ab_ids'] = [VL_id]
+    else:
+        func_var = 'N/A'
         
     return func_var
 
