@@ -255,7 +255,7 @@ def get_resi_id(resi):
 
 def get_SS(dssp_dict, chain_id, resi):
     
-    func_var = dssp_dict[chain_id , (' ', resi.get_id()[1], resi.get_id()[2])][1]
+    func_var = dssp_dict[chain_id , (' ', resi.get_id()[1], resi.get_id()[2])][2]
     
     return func_var
 
@@ -273,7 +273,7 @@ def get_resi_ASA(dssp_dict, chain_id, resi):
     
     # Function calculates available surface area of the residue using the dssp
     
-    func_var = dssp_dict[chain_id , (' ', resi.get_id()[1], resi.get_id()[2])][2]
+    func_var = dssp_dict[chain_id , (' ', resi.get_id()[1], resi.get_id()[2])][3]
     
     return func_var
 
