@@ -84,6 +84,9 @@ def get_Ab_type(VH_id, VL_id):
     elif VH_id.find('nan') >= 0 and VL_id.find('nan') < 0:
         func_var = 'VL sdAb'
         #func_dict['Ab_ids'] = [VL_id]
+
+    else:
+        func_var = 'N/A'
         
     return func_var
     
@@ -300,7 +303,7 @@ def Ab_raw_extract(structure, index):
     return out_list
 
 #def writing_raw(pdb_id, Ab_type, Ab_chain_type, Ab_domain, Ab_resi_id, Ab_resi_aa, Ab_atom_id, Ab_atom_coord):
-def writing_raw(pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id, Ab_atom_coord):   
+def writing_raw(a, pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id, Ab_atom_coord):
     
     if any(str(Ab_resi_aa) == x for x in aa_list) and Ab_atom_id[0] != 'H':
         
@@ -315,7 +318,20 @@ def writing_raw(pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_
         master_dict_raw['Ab_atom_list_raw'].append(Ab_atom_id)
         master_dict_raw['Ab_atom_coord_list_raw'].append(Ab_atom_coord)
 
-    
+        master_dict_raw['#aa in VH FR1 (reference data)'] = VH_FR1_ref_list[a]
+        master_dict_raw['#aa in VH CDR1 (reference data)'] = VH_CDR1_ref_list[a]
+        master_dict_raw['#aa in VH FR2 (reference data)'] = VH_FR2_ref_list[a]
+        master_dict_raw['#aa in VH CDR2 (reference data)'] = VH_CDR2_ref_list[a]
+        master_dict_raw['#aa in VH FR3 (reference data)'] = VH_FR3_ref_list[a]
+        master_dict_raw['#aa in VH CDR3 (reference data)'] = VH_CDR3_ref_list[a]
+        master_dict_raw['#aa in VH FR4 (reference data)'] = VH_FR4_ref_list[a]
+        master_dict_raw['#aa in VL FR1 (reference data)'] = VL_FR1_ref_list[a]
+        master_dict_raw['#aa in VL CDR1 (reference data)'] = VL_CDR1_ref_list[a]
+        master_dict_raw['#aa in VL FR2 (reference data)'] = VL_FR2_ref_list[a]
+        master_dict_raw['#aa in VL CDR2 (reference data)'] = VL_CDR2_ref_list[a]
+        master_dict_raw['#aa in VL FR3 (reference data)'] = VL_FR3_ref_list[a]
+        master_dict_raw['#aa in VL CDR3 (reference data)'] = VL_CDR3_ref_list[a]
+        master_dict_raw['#aa in VL FR4 (reference data)'] = VL_FR4_ref_list[a]
 
 # Initialize variables for run
 aa_list = aa_list = ['ARG','HIS','LYS','ASP','GLU','SER','THR','ASN','GLN','CYS','GLY','PRO','ALA','ILE','LEU','MET','PHE','TRP','TYR','VAL']
@@ -419,6 +435,8 @@ def main(a):
         Ab_id_list = [VH_id]
     elif Ab_type == 'VL sdAb':
         Ab_id_list = [VL_id]
+    else:
+        Ab_id_list = []
     
     #domain_count_dict = domain_count(structure, Ab_type, VH_id, VL_id, domain_list)
 
@@ -436,6 +454,8 @@ def main(a):
             Ab_chain_type = 'VH'
         elif Ab_idx == VL_id:
             Ab_chain_type = 'VL'
+        else:
+            Ab_chain_type = 'N/A'
         
         # Create for loop to go over all residues from the Ab_idx chain 
         for Ab_resi in structure[0][Ab_idx]:
@@ -472,7 +492,7 @@ def main(a):
                     Ab_atom_coord = get_atom_coord(Ab_atom)
                     
                     # Appending raw sequence values (not contact points)
-                    writing_raw(pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id, Ab_atom_coord)
+                    writing_raw(a, pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id, Ab_atom_coord)
                     #writing_raw(pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_atom_id, Ab_atom_coord)
                     
                     # Create for loops that go through all atoms in antigen
@@ -572,15 +592,21 @@ if __name__ == '__main__':
     results_df = pd.concat(results)
     results_df.to_csv('Dummy.csv', sep=';')
     results_df = pd.read_csv('Dummy.csv', sep=';',header=0)
-    results_df = results_df.drop_duplicates()
+    results_df = results_df.drop_duplicates(subset=['pdb_type_list', 'pdb_list', 'Ab_type_list', 'Ab_chain_seq_list', 'Ab_chain_type_list', 'drop_duplicates',
+                                                    'Ab_resi_id_list', 'Ab_resi_id_list', 'Ab_atom_list', 'Ab_atom_coord_list', 'Ab_SS_list', 'Ab_SS_list',
+                                                    'Ab_raw_extract_list', 'Ag_chain_id_list', 'Ag_resi_id_list', 'Ag_resi_aa_list', 'Ag_atom_list',
+                                                    'Ag_atom_coord_list', 'Ag_SS_list', 'Ag_resi_ASA_list', 'Contact_distance_list', 'resolution_list',
+                                                    'H_chain_organism_list', 'L_chain_organism_list'], keep='first')
     
     results_df.to_csv('Output_protein.csv', sep=';')
     
     #results_df_raw = pd.concat(results_raw)
     #results_df_raw.to_csv('Dummy.csv', sep=';')
     #results_df_raw = pd.read_csv('Dummy.csv', sep=';',header=0)
-    #results_df_raw = results_df_raw.drop_duplicates()
-    
+    #results_df_raw = results_df_raw.drop_duplicates(subset=['pdb_type_list_raw', 'pdb_raw', 'Ab_type_list_raw', 'Ab_chain_id_list_raw',
+    #                                                        'Ab_chain_type_list_raw', 'Ab_domain_list_raw', 'Ab_resi_id_list_raw',
+    #                                                        'Ab_resi_aa_list_raw', 'Ab_atom_list_raw', 'Ab_atom_list_raw'], keep='first')
+
     #results_df_raw.to_csv('Output_non-contact_protein.csv', sep=';')
 
                                                                            
