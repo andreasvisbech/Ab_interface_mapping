@@ -587,13 +587,16 @@ if __name__ == '__main__':
     #results_raw = result_list[1]
     pool.close()
     pool.join()
-    
+
+    #TODO: Figure out a way to export both reference data and contact data in the same run...
+
     # This is very ugly but it seems to work... I have problems with just dropping duplicates since the dataframe appears to contain lists and is thus not hashable. 
     results_df = pd.concat(results)
     results_df.to_csv('Dummy.csv', sep=';')
     results_df = pd.read_csv('Dummy.csv', sep=';',header=0)
-    results_df = results_df.drop_duplicates(subset=['pdb_type_list', 'pdb_list', 'Ab_type_list', 'Ab_chain_seq_list', 'Ab_chain_type_list', 'drop_duplicates',
-                                                    'Ab_resi_id_list', 'Ab_resi_id_list', 'Ab_atom_list', 'Ab_atom_coord_list', 'Ab_SS_list', 'Ab_SS_list',
+    results_df = results_df.drop_duplicates(subset=['pdb_type_list', 'pdb_list', 'Ab_type_list', 'Ab_chain_seq_list', 'Ab_chain_type_list',
+                                                    'Ab_chain_id_list', 'Ab_domain_list', 'Ab_resi_id_list', 'Ab_resi_id_list', 'Ab_atom_list',
+                                                    'Ab_atom_coord_list', 'Ab_SS_list', 'Ab_SS_list',
                                                     'Ab_raw_extract_list', 'Ag_chain_id_list', 'Ag_resi_id_list', 'Ag_resi_aa_list', 'Ag_atom_list',
                                                     'Ag_atom_coord_list', 'Ag_SS_list', 'Ag_resi_ASA_list', 'Contact_distance_list', 'resolution_list',
                                                     'H_chain_organism_list', 'L_chain_organism_list'], keep='first')
