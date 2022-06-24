@@ -672,19 +672,19 @@ def main_func(line):
 								   'Ab atom coord'
 								   ])
 
-	# return df_contact
+	#return df_contact
 	return df_ref
 
 
 # Loading in the data from the summary file
-data = pd.read_csv('/work1/avima/Ab_interface/Data_extract/dum_10.csv', sep=';', header=0)
+data = pd.read_csv('/work1/avima/Ab_interface/Data_extract/Summary_all_sorted_nonredundant_index.csv', sep=';', header=0)
 
 if __name__ == '__main__':
 	pool = Pool(mul)
 	results = pool.map(main_func, data.iterrows())
 
-	# results_contact = pd.concat(results)
-	# results_contact.to_csv('Output_contact.csv', sep=';')
+	#results_contact = pd.concat(results)
+	#results_contact.to_csv('Output_contact.csv', sep=';')
 
 	results_ref = pd.concat(results)
 	results_ref.to_csv('Output_ref.csv', sep=';')
