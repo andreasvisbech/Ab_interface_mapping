@@ -17,3 +17,11 @@ SCRIPT #2:
  
 - Takes 'Summary_all_sorted.csv' hard coded on line 3
 - Takes "Cluster.txt" hard coded on line 36. The cluster file is made with CD-HIT and the fasta file generated from script #1. 
+
+SCRIPT #3:
+
+- AIM: Takes summary file from script #2 and pdb files. Then uses summary file as road map and looks through all pdb files for atom-atom contacts. 
+
+- path for pdb files is hard coded on line 314
+- file for dssp analysis specified on line 395
+- summary file is hard coded on line 680
