@@ -1,4 +1,4 @@
-# Import modules 
+# Import modules
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -276,34 +276,34 @@ def Ab_raw_extract(structure, index, aa_list):
 
 
 # def writing_raw(pdb_id, Ab_type, Ab_chain_type, Ab_domain, Ab_resi_id, Ab_resi_aa, Ab_atom_id, Ab_atom_coord):
-def writing_raw(a, pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id,
-				Ab_atom_coord):
-	if any(str(Ab_resi_aa) == x for x in aa_list) and Ab_atom_id[0] != 'H':
-		master_dict_raw['pdb_type_list_raw'].append(pdb_type)
-		master_dict_raw['pdb_raw'].append(pdb_id)
-		master_dict_raw['Ab_type_list_raw'].append(Ab_type)
-		master_dict_raw['Ab_chain_type_list_raw'].append(Ab_chain_type)
-		master_dict_raw['Ab_chain_id_list_raw'].append(Ab_idx)
-		master_dict_raw['Ab_domain_list_raw'].append(Ab_domain)
-		master_dict_raw['Ab_resi_aa_list_raw'].append(Ab_resi_aa)
-		master_dict_raw['Ab_resi_id_list_raw'].append(Ab_resi_id)
-		master_dict_raw['Ab_atom_list_raw'].append(Ab_atom_id)
-		master_dict_raw['Ab_atom_coord_list_raw'].append(Ab_atom_coord)
+#def writing_raw(a, pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id,
+#				Ab_atom_coord):
+#	if any(str(Ab_resi_aa) == x for x in aa_list) and Ab_atom_id[0] != 'H':
+#		master_dict_raw['pdb_type_list_raw'].append(pdb_type)
+#		master_dict_raw['pdb_raw'].append(pdb_id)
+#		master_dict_raw['Ab_type_list_raw'].append(Ab_type)
+#		master_dict_raw['Ab_chain_type_list_raw'].append(Ab_chain_type)
+#		master_dict_raw['Ab_chain_id_list_raw'].append(Ab_idx)
+#		master_dict_raw['Ab_domain_list_raw'].append(Ab_domain)
+#		master_dict_raw['Ab_resi_aa_list_raw'].append(Ab_resi_aa)
+#		master_dict_raw['Ab_resi_id_list_raw'].append(Ab_resi_id)
+#		master_dict_raw['Ab_atom_list_raw'].append(Ab_atom_id)
+#		master_dict_raw['Ab_atom_coord_list_raw'].append(Ab_atom_coord)
 
-		master_dict_raw['#aa in VH FR1 (reference data)'] = VH_FR1_ref_list[a]
-		master_dict_raw['#aa in VH CDR1 (reference data)'] = VH_CDR1_ref_list[a]
-		master_dict_raw['#aa in VH FR2 (reference data)'] = VH_FR2_ref_list[a]
-		master_dict_raw['#aa in VH CDR2 (reference data)'] = VH_CDR2_ref_list[a]
-		master_dict_raw['#aa in VH FR3 (reference data)'] = VH_FR3_ref_list[a]
-		master_dict_raw['#aa in VH CDR3 (reference data)'] = VH_CDR3_ref_list[a]
-		master_dict_raw['#aa in VH FR4 (reference data)'] = VH_FR4_ref_list[a]
-		master_dict_raw['#aa in VL FR1 (reference data)'] = VL_FR1_ref_list[a]
-		master_dict_raw['#aa in VL CDR1 (reference data)'] = VL_CDR1_ref_list[a]
-		master_dict_raw['#aa in VL FR2 (reference data)'] = VL_FR2_ref_list[a]
-		master_dict_raw['#aa in VL CDR2 (reference data)'] = VL_CDR2_ref_list[a]
-		master_dict_raw['#aa in VL FR3 (reference data)'] = VL_FR3_ref_list[a]
-		master_dict_raw['#aa in VL CDR3 (reference data)'] = VL_CDR3_ref_list[a]
-		master_dict_raw['#aa in VL FR4 (reference data)'] = VL_FR4_ref_list[a]
+#		master_dict_raw['#aa in VH FR1 (reference data)'] = VH_FR1_ref_list[a]
+#		master_dict_raw['#aa in VH CDR1 (reference data)'] = VH_CDR1_ref_list[a]
+#		master_dict_raw['#aa in VH FR2 (reference data)'] = VH_FR2_ref_list[a]
+#		master_dict_raw['#aa in VH CDR2 (reference data)'] = VH_CDR2_ref_list[a]
+#		master_dict_raw['#aa in VH FR3 (reference data)'] = VH_FR3_ref_list[a]
+#		master_dict_raw['#aa in VH CDR3 (reference data)'] = VH_CDR3_ref_list[a]
+#		master_dict_raw['#aa in VH FR4 (reference data)'] = VH_FR4_ref_list[a]
+#		master_dict_raw['#aa in VL FR1 (reference data)'] = VL_FR1_ref_list[a]
+#		master_dict_raw['#aa in VL CDR1 (reference data)'] = VL_CDR1_ref_list[a]
+#		master_dict_raw['#aa in VL FR2 (reference data)'] = VL_FR2_ref_list[a]
+#		master_dict_raw['#aa in VL CDR2 (reference data)'] = VL_CDR2_ref_list[a]
+#		master_dict_raw['#aa in VL FR3 (reference data)'] = VL_FR3_ref_list[a]
+#		master_dict_raw['#aa in VL CDR3 (reference data)'] = VL_CDR3_ref_list[a]
+#		master_dict_raw['#aa in VL FR4 (reference data)'] = VL_FR4_ref_list[a]
 
 
 def set_parameters():
@@ -683,11 +683,13 @@ if __name__ == '__main__':
 	pool = Pool(mul)
 	results = pool.map(main_func, data.iterrows())
 
-	#results_contact = pd.concat(results)
-	#results_contact.to_csv('Output_contact.csv', sep=';')
+	#TODO: figure out to allow the script to output both results from contact and results from reference data
 
-	results_ref = pd.concat(results)
-	results_ref.to_csv('Output_ref.csv', sep=';')
+	results_contact = pd.concat(results)
+	results_contact.to_csv('Output_contact.csv', sep=';')
+
+	#results_ref = pd.concat(results)
+	#results_ref.to_csv('Output_ref.csv', sep=';')
 
 
 
