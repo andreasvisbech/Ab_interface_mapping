@@ -1,5 +1,5 @@
 import statistics
-
+from pathlib import Path
 import pandas as pd
 from Bio.PDB import PDBParser
 
@@ -23,41 +23,82 @@ def get_vhvl_seq(structure, v_id):
 	return seq
 
 
-def main(summary_data, pdb_path):
-	parser = PDBParser()  # Load parser
-	fasta = ''  # Load empty string for storing fasta in
-	pdb_list = summary_data['pdb'].tolist()  # Writing all pdb IDs to a list
+def create_fasta(summary_data: pd.DataFrame, parser, pdb_path: Path, output_path: Path):
+	"""
+	Extracting fasta sequence of the antibody V domains. Only amino acids with ID below 128 is included.
 
-	# Small code block to remove all antibodies where antigen is N/A or H chain and L chain are the same i.e. scFvs where H chain and L chain are not properly annotated
+	:param summary_data:
+	:param parser:
+	:param pdb_path:
+	:param output_path:
+	:return: Nothing
+	"""
+	fasta = ""
+	for a in range(summary_data.shape[0]):
+		print(str(a) + ' --- ' + str(summary_data.iloc[a][0]))
+
+		# Loading in the pdb file
+		pdb2 = pdb_path / f"{summary_data.iloc[a][0]}.pdb"
+		structure = parser.get_structure("structure", pdb2)
+
+		# Getting the antibody type and the associated chain ids for antibody chains
+		VH_id = str(summary_data.iloc[a][1])
+		VL_id = str(summary_data.iloc[a][2])
+		Ab_type = get_ab_type(VH_id, VL_id)
+
+		if Ab_type == 'Fv':
+			VH_seq = get_vhvl_seq(structure, VH_id)
+			VL_seq = get_vhvl_seq(structure, VL_id)
+
+			fasta += '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VH_seq + '\n'
+			fasta += '>' + str(summary_data.iloc[a][0]) + ', VL' + '\n' + VL_seq + '\n'
+
+		elif Ab_type == 'VH sdAb':
+			VH_seq = get_vhvl_seq(structure, VH_id)
+
+			fasta += '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VH_seq + '\n'
+
+		elif Ab_type == 'VL sdAb':
+			VL_seq = get_vhvl_seq(structure, VL_id)
+
+			fasta += '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VL_seq + '\n'
+
+	with open(output_path / "fasta.fa", "w") as fasta_out:
+		fasta_out.write(fasta)
+
+
+def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
+	# Remove all antibodies where antigen is N/A or H chain and L chain are the same i.e. scFvs
+	# where H chain and L chain are not properly annotated
 	drop_list = []
-	for a in range(len(pdb_list)):
-		if str(summary_data.iloc[a][4]) == 'nan' or str(summary_data.iloc[a][1]) == str(summary_data.iloc[a][2]):
-			drop_list.append(a)
+	for i, row in summary_data.iterrows():
+		if row.isna().antigen_chain or (row.Hchain == row.Lchain):
+			drop_list.append(i)
+	summary_data = summary_data[~summary_data.index.isin(drop_list)]
 
-	summary_data = summary_data.drop(labels=drop_list, axis=0)
-
-	# Create for loop with the purpose of removing duplicate biological units in the crystal structure.
-	# The loop should go over the individual complexes and only continue with the complex that has lowest average b factor
-	pdb_list_unique = summary_data['pdb'].drop_duplicates().tolist()
+	# Remove duplicate biological units in the crystal structure.
+	# Loop over the individual complexes and only continue with the complex that has the lowest average b factor
+	pdb_list_unique = summary_data.pdb.unique()
 
 	pd_list = []
+	parser = PDBParser()  # Load parser
 
-	for b in range(len(pdb_list_unique)):
-		print(b)
+	for unique_pdb_name in pdb_list_unique:
+		print(unique_pdb_name)
 		# Loading the pdb structure into python
-		pdb1 = str(pdb_path + pdb_list_unique[b] + '.pdb')
+		pdb1 = pdb_path / f"{unique_pdb_name}.pdb"
 		structure = parser.get_structure("structure", pdb1)
 
 		# Getting summary_data from dataframe relating to the specific pdb
-		my_pd = summary_data[summary_data['pdb'] == pdb_list_unique[b]]
+		my_pd = summary_data[summary_data['pdb'] == unique_pdb_name]
 
 		# Check how many rows in the remaining summary_data rows contain the pdb id.
 		# Since each row in summary files represents a single biological unit multiple rows indicate the crystal
-		# contains more than one biological unit. If only one row is present there is no redundant summary_data in the crystal.
-		if my_pd.shape[0] == 1:
-			pd_list.append(my_pd.iloc[0].tolist())
-
-		elif my_pd.shape[0] > 1:
+		# contains more than one biological unit.
+		# If only one row is present there is no redundant summary_data in the crystal.
+		if len(my_pd) == 1:
+			pd_list.append(my_pd.iloc[0])
+		else:
 			bfactor_avr = []
 
 			for c in range(my_pd.shape[0]):
@@ -113,41 +154,6 @@ def main(summary_data, pdb_path):
 
 	summary_data = pd.DataFrame(data=pd_list, columns=summary_data.columns.values)
 
-	# Creating for loop for extracting fasta sequence of the antibody V domains. Only amino acids with ID below 128 is included.
-	for a in range(summary_data.shape[0]):
-		print(str(a) + ' --- ' + str(summary_data.iloc[a][0]))
-		#    VH_id = str(summary_data.iloc[a][1])
-		#    VL_id = str(summary_data.iloc[a][2])
-
-		# Loading in the pdb file
-		pdb2 = str(pdb_path + str(summary_data.iloc[a][0]) + '.pdb')
-		structure = parser.get_structure("structure", pdb2)
-
-		# Getting the antibody type and the associated chain ids for antibody chains
-		VH_id = str(summary_data.iloc[a][1])
-		VL_id = str(summary_data.iloc[a][2])
-		Ab_type = get_ab_type(VH_id, VL_id)
-
-		if Ab_type == 'Fv':
-			VH_seq = get_vhvl_seq(structure, VH_id)
-			VL_seq = get_vhvl_seq(structure, VL_id)
-
-			fasta = fasta + '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VH_seq + '\n'
-			fasta = fasta + '>' + str(summary_data.iloc[a][0]) + ', VL' + '\n' + VL_seq + '\n'
-
-		elif Ab_type == 'VH sdAb':
-			VH_seq = get_vhvl_seq(structure, VH_id)
-
-			fasta = fasta + '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VH_seq + '\n'
-
-		elif Ab_type == 'VL sdAb':
-			VL_seq = get_vhvl_seq(structure, VL_id)
-
-			fasta = fasta + '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VL_seq + '\n'
-
-	with open("fasta.fa", "a") as file2_out:
-		file2_out.write(fasta)
-
 	# Create for loop for counting amino acids in the different domains
 	resi_tot_list = []
 	CDR_tot_list = []
@@ -186,10 +192,8 @@ def main(summary_data, pdb_path):
 		VL_CDR3 = 0
 		VL_FR4 = 0
 
-		pdb3 = str(pdb_path + str(summary_data['pdb'][e]) + '.pdb')
+		pdb3 = pdb_path / f"{summary_data['pdb'][e]}.pdb"
 		structure = parser.get_structure("structure", pdb3)
-
-		Ab_chain_list = []
 
 		VH_id = str(summary_data.iloc[e][1])
 		VL_id = str(summary_data.iloc[e][2])
@@ -197,8 +201,7 @@ def main(summary_data, pdb_path):
 		# If a VH id is given in the summary file count residues in the different domains
 		if VH_id != 'nan':
 			for residue_C in structure[0][VH_id]:
-				if any(str(residue_C.get_resname()) == x for x in
-					   aa_list):  # Only include if the residue is an amino acid
+				if any(str(residue_C.get_resname()) == x for x in aa_list):  # Only include if the residue is an amino acid
 
 					if residue_C.get_id()[1] < 27:
 						resi_tot += 1
@@ -228,8 +231,7 @@ def main(summary_data, pdb_path):
 		# If a VL id is given in the summary file count residues in the different domains
 		if VL_id != 'nan':
 			for residue_D in structure[0][VL_id]:
-				if any(str(residue_D.get_resname()) == x for x in
-					   aa_list):  # Only include if the residue is an amino acid
+				if any(str(residue_D.get_resname()) == x for x in aa_list):  # Only include if the residue is an amino acid
 					if residue_D.get_id()[1] < 27:
 						resi_tot += 1
 						VL_FR1 += 1
@@ -291,8 +293,13 @@ def main(summary_data, pdb_path):
 		'#aa in VL FR4 (ref)': VL_FR4_list}
 	)
 	data4 = pd.concat([summary_data, CDR_data], axis=1)
-	data4.to_csv('Summary_all_sorted.csv', sep=';', index=False)
+	data4.to_csv(output_path / 'Summary_all_sorted.csv', sep=';', index=False)
+	create_fasta(summary_data, parser, pdb_path, output_path)
 
 
 if __name__ == "__main__":
-	main(pd.read_csv('test/test_data/Script1/Summary_all.tsv', sep='\t', header=0), "test/test_data/Script1/imgt_all_clean/")
+	main(
+		summary_data=pd.read_csv('test/test_data/Script1/Summary_all.tsv', sep='\t'),
+		pdb_path=Path("test/test_data/Script1/imgt_all_clean/"),
+		output_path=Path("./")
+	)
