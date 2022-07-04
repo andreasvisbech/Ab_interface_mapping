@@ -1,16 +1,15 @@
-import statistics
+from statistics import mean
 from pathlib import Path
-import pandas as pd
+from pandas import read_csv, DataFrame, concat
 from Bio.PDB import PDBParser
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-
 from shared_funcs import get_ab_type, aa_list, aa_dict
 
 
-def get_vhvl_seq(structure, v_id):
+def get_vhvl_seq(structure, v_id: str):
 	seq = ''
 
 	# The function extracts the amino acid sequence of the VH or VL domain.
@@ -27,7 +26,7 @@ def get_vhvl_seq(structure, v_id):
 	return seq
 
 
-def create_fasta(summary_data: pd.DataFrame, parser, pdb_path: Path, output_path: Path):
+def create_fasta(summary_data: DataFrame, parser: PDBParser, pdb_path: Path, output_path: Path):
 	"""
 	Extracting fasta sequence of the antibody V domains. Only amino acids with ID below 128 is included.
 
@@ -66,7 +65,8 @@ def create_fasta(summary_data: pd.DataFrame, parser, pdb_path: Path, output_path
 		SeqIO.write(sequences, output_handle, "fasta")
 
 
-def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
+def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
+	summary_data = read_csv(summary_data_path, sep='\t')
 	# Remove all antibodies where antigen is N/A or H chain and L chain are the same i.e. scFvs
 	# where H chain and L chain are not properly annotated
 	drop_list = []
@@ -139,12 +139,12 @@ def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
 							for atom_B in residue_B:
 								bfactor_list.append(atom_B.get_bfactor())
 
-				bfactor_avr.append(statistics.mean(bfactor_list))
+				bfactor_avr.append(mean(bfactor_list))
 
 			bfactor_min_idx = bfactor_avr.index(min(bfactor_avr))
 			pd_list.append(my_pd.iloc[bfactor_min_idx])
 
-	summary_data = pd.DataFrame(pd_list)
+	summary_data = DataFrame(pd_list)
 
 	# Create for loop for counting amino acids in the different domains
 	resi_tot_list = []
@@ -265,7 +265,7 @@ def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
 		vl_cdr3_list.append(vl_cdr3)
 		vl_fr4_list.append(vl_fr4)
 
-	cdr_data = pd.DataFrame({
+	cdr_data = DataFrame({
 		'Total residues in Ab V domain': resi_tot_list, 'Total CDR residues': cdr_tot_list,
 		'#aa in VH FR1 (ref)': vh_fr1_list, '#aa in VH CDR1 (ref)': vh_cdr1_list, '#aa in VH FR2 (ref)': vh_fr2_list,
 		'#aa in VH CDR2 (ref)': vh_cdr2_list, '#aa in VH FR3 (ref)': vh_fr3_list, '#aa in VH CDR3 (ref)': vh_cdr3_list,
@@ -273,14 +273,14 @@ def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
 		'#aa in VL FR2 (ref)': vl_fr2_list, '#aa in VL CDR2 (ref)': vl_cdr2_list, '#aa in VL FR3 (ref)': vl_fr3_list,
 		'#aa in VL CDR3 (ref)': vl_cdr3_list, '#aa in VL FR4 (ref)': vl_fr4_list}
 	)
-	data4 = pd.concat([summary_data, cdr_data], axis=1)
+	data4 = concat([summary_data, cdr_data], axis=1)
 	data4.to_feather(output_path / 'Summary_all_sorted.fea.zst', compression='zstd')
 	create_fasta(summary_data, parser, pdb_path, output_path)
 
 
 if __name__ == "__main__":
 	main(
-		summary_data=pd.read_csv('test/test_data/Script1/Summary_all.tsv', sep='\t'),
+		summary_data_path=Path('test/test_data/Script1/Summary_all.tsv'),
 		pdb_path=Path("test/test_data/Script1/imgt_all_clean/"),
 		output_path=Path("./")
 	)
