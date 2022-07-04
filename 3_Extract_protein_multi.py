@@ -1,10 +1,7 @@
-# Import modules
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from Bio.PDB import *
-from Bio import SeqIO
-from Bio.PDB.DSSP import dssp_dict_from_pdb_file
 from Bio.PDB.DSSP import DSSP
 
 from multiprocessing import Pool
@@ -49,15 +46,15 @@ def get_Ab_type(VH_id, VL_id):
 
 	if VH_id.find('nan') < 0 and VL_id.find('nan') < 0:
 		func_var = 'Fv'
-		# func_dict['Ab_ids'] = [VH_id , VL_id]
+	# func_dict['Ab_ids'] = [VH_id , VL_id]
 
 	elif VH_id.find('nan') < 0 and VL_id.find('nan') >= 0:
 		func_var = 'VH sdAb'
-		# func_dict['Ab_ids'] = [VH_id]
+	# func_dict['Ab_ids'] = [VH_id]
 
 	elif VH_id.find('nan') >= 0 and VL_id.find('nan') < 0:
 		func_var = 'VL sdAb'
-		# func_dict['Ab_ids'] = [VL_id]
+	# func_dict['Ab_ids'] = [VL_id]
 
 	else:
 		func_var = 'N/A'
@@ -83,15 +80,15 @@ def get_Ab_domain(resi):
 
 	if 27 > resi.get_id()[1]:
 		CDR_value = 'FR1'
-	elif 27 <= resi.get_id()[1] and 38 >= resi.get_id()[1]:
+	elif 27 <= resi.get_id()[1] <= 38:
 		CDR_value = 'CDR1'
-	elif 38 < resi.get_id()[1] and 56 > resi.get_id()[1]:
+	elif 38 < resi.get_id()[1] < 56:
 		CDR_value = 'FR2'
-	elif 56 <= resi.get_id()[1] and 65 >= resi.get_id()[1]:
+	elif 56 <= resi.get_id()[1] <= 65:
 		CDR_value = 'CDR2'
-	elif 65 < resi.get_id()[1] and 105 > resi.get_id()[1]:
+	elif 65 < resi.get_id()[1] < 105:
 		CDR_value = 'FR3'
-	elif 105 <= resi.get_id()[1] and 117 >= resi.get_id()[1]:
+	elif 105 <= resi.get_id()[1] <= 117:
 		CDR_value = 'CDR3'
 	elif 117 < resi.get_id()[1] <= 128:
 		CDR_value = 'FR4'
@@ -126,37 +123,37 @@ def domain_count(structure, Ab_type, VH_id, VL_id, domain_list):
 
 			CDR_value = get_Ab_domain(Ab_resi)
 			if CDR_value == 'FR1':
-				VH_FR1_ref_count = VH_FR1_ref_count + 1
+				VH_FR1_ref_count += 1
 			elif CDR_value == 'CDR1':
-				VH_CDR1_ref_count = VH_CDR1_ref_count + 1
+				VH_CDR1_ref_count += 1
 			elif CDR_value == 'FR2':
-				VH_FR2_ref_count = VH_FR2_ref_count + 1
+				VH_FR2_ref_count += 1
 			elif CDR_value == 'CDR2':
-				VH_CDR2_ref_count = VH_CDR2_ref_count + 1
+				VH_CDR2_ref_count += 1
 			elif CDR_value == 'FR3':
-				VH_FR3_ref_count = VH_FR3_ref_count + 1
+				VH_FR3_ref_count += 1
 			elif CDR_value == 'CDR3':
-				VH_CDR3_ref_count = VH_CDR3_ref_count + 1
+				VH_CDR3_ref_count += 1
 			elif CDR_value == 'FR4':
-				VH_FR4_ref_count = VH_FR4_ref_count + 1
+				VH_FR4_ref_count += 1
 
 		for Ab_resi in structure[0][VL_id]:
 
 			CDR_value = get_Ab_domain(Ab_resi)
 			if CDR_value == 'FR1':
-				VL_FR1_ref_count = VL_FR1_ref_count + 1
+				VL_FR1_ref_count += 1
 			elif CDR_value == 'CDR1':
-				VL_CDR1_ref_count = VL_CDR1_ref_count + 1
+				VL_CDR1_ref_count += 1
 			elif CDR_value == 'FR2':
-				VL_FR2_ref_count = VL_FR2_ref_count + 1
+				VL_FR2_ref_count += 1
 			elif CDR_value == 'CDR2':
-				VL_CDR2_ref_count = VL_CDR2_ref_count + 1
+				VL_CDR2_ref_count += 1
 			elif CDR_value == 'FR3':
-				VL_FR3_ref_count = VL_FR3_ref_count + 1
+				VL_FR3_ref_count += 1
 			elif CDR_value == 'CDR3':
-				VL_CDR3_ref_count = VL_CDR3_ref_count + 1
+				VL_CDR3_ref_count += 1
 			elif CDR_value == 'FR4':
-				VL_FR4_ref_count = VL_FR4_ref_count + 1
+				VL_FR4_ref_count += 1
 
 	elif Ab_type == 'VH sdAb':
 
@@ -164,19 +161,19 @@ def domain_count(structure, Ab_type, VH_id, VL_id, domain_list):
 
 			CDR_value = get_Ab_domain(Ab_resi)
 			if CDR_value == 'FR1':
-				VH_FR1_ref_count = VH_FR1_ref_count + 1
+				VH_FR1_ref_count += 1
 			elif CDR_value == 'CDR1':
-				VH_CDR1_ref_count = VH_CDR1_ref_count + 1
+				VH_CDR1_ref_count += 1
 			elif CDR_value == 'FR2':
-				VH_FR2_ref_count = VH_FR2_ref_count + 1
+				VH_FR2_ref_count += 1
 			elif CDR_value == 'CDR2':
-				VH_CDR2_ref_count = VH_CDR2_ref_count + 1
+				VH_CDR2_ref_count += 1
 			elif CDR_value == 'FR3':
-				VH_FR3_ref_count = VH_FR3_ref_count + 1
+				VH_FR3_ref_count += 1
 			elif CDR_value == 'CDR3':
-				VH_CDR3_ref_count = VH_CDR3_ref_count + 1
+				VH_CDR3_ref_count += 1
 			elif CDR_value == 'FR4':
-				VH_FR4_ref_count = VH_FR4_ref_count + 1
+				VH_FR4_ref_count += 1
 
 	elif Ab_type == 'VL sdAb':
 
@@ -184,19 +181,19 @@ def domain_count(structure, Ab_type, VH_id, VL_id, domain_list):
 
 			CDR_value = get_Ab_domain(Ab_resi)
 			if CDR_value == 'FR1':
-				VL_FR1_ref_count = VL_FR1_ref_count + 1
+				VL_FR1_ref_count += 1
 			elif CDR_value == 'CDR1':
-				VL_CDR1_ref_count = VL_CDR1_ref_count + 1
+				VL_CDR1_ref_count += 1
 			elif CDR_value == 'FR2':
-				VL_FR2_ref_count = VL_FR2_ref_count + 1
+				VL_FR2_ref_count += 1
 			elif CDR_value == 'CDR2':
-				VL_CDR2_ref_count = VL_CDR2_ref_count + 1
+				VL_CDR2_ref_count += 1
 			elif CDR_value == 'FR3':
-				VL_FR3_ref_count = VL_FR3_ref_count + 1
+				VL_FR3_ref_count += 1
 			elif CDR_value == 'CDR3':
-				VL_CDR3_ref_count = VL_CDR3_ref_count + 1
+				VL_CDR3_ref_count += 1
 			elif CDR_value == 'FR4':
-				VL_FR4_ref_count = VL_FR4_ref_count + 1
+				VL_FR4_ref_count += 1
 
 	out_dict['VH_FR1_ref_count'] = VH_FR1_ref_count
 	out_dict['VH_CDR1_ref_count'] = VH_CDR1_ref_count
@@ -235,13 +232,7 @@ def get_SS(dssp_dict, chain_id, resi):
 
 
 def get_atom_coord(atom):
-	func_list = []
-
-	func_list.append(atom.get_coord()[0])
-	func_list.append(atom.get_coord()[1])
-	func_list.append(atom.get_coord()[2])
-
-	return func_list
+	return [atom.get_coord()[0], atom.get_coord()[1], atom.get_coord()[2]]
 
 
 def get_resi_ASA(dssp_dict, chain_id, resi):
@@ -276,7 +267,7 @@ def Ab_raw_extract(structure, index, aa_list):
 
 
 # def writing_raw(pdb_id, Ab_type, Ab_chain_type, Ab_domain, Ab_resi_id, Ab_resi_aa, Ab_atom_id, Ab_atom_coord):
-#def writing_raw(a, pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id,
+# def writing_raw(a, pdb_type, pdb_id, Ab_type, Ab_chain_type, Ab_idx, Ab_domain, Ab_resi_aa, Ab_resi_id, Ab_atom_id,
 #				Ab_atom_coord):
 #	if any(str(Ab_resi_aa) == x for x in aa_list) and Ab_atom_id[0] != 'H':
 #		master_dict_raw['pdb_type_list_raw'].append(pdb_type)
@@ -314,9 +305,8 @@ def set_parameters():
 	path = '/work1/avima/Ab_interface/imgt_all_clean_align/'
 
 	# Initialize variables for run
-	aa_list = aa_list = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CYS', 'GLY', 'PRO', 'ALA',
-						 'ILE', 'LEU', 'MET', 'PHE', 'TRP', 'TYR', 'VAL']
-
+	aa_list = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CYS', 'GLY', 'PRO', 'ALA', 'ILE', 'LEU',
+			   'MET', 'PHE', 'TRP', 'TYR', 'VAL']
 	domain_list = ['VH FR1', 'VH CDR1', 'VH FR2', 'VH CDR2', 'VH FR3', 'VH CDR3', 'VH FR4', 'VL FR1', 'VL CDR1',
 				   'VL FR2', 'VL CDR2', 'VL FR3', 'VL CDR3', 'VL FR4']
 
@@ -493,7 +483,7 @@ def main_func(line):
 
 						for Ag_resi in structure[0][Ag_idx]:
 
-							if any(str(Ag_resi.get_resname()) == x for x in aa_list):  ### Only consider amino acids
+							if any(str(Ag_resi.get_resname()) == x for x in aa_list):  # Only consider amino acids
 
 								# Get the aa of the specific Ab residue
 								Ag_resi_aa = Ag_resi.get_resname()
@@ -568,112 +558,30 @@ def main_func(line):
 										VL_FR4_ref_list.append(line['#aa in VL FR4 (ref)'])
 
 	# Writing a dataframe object for outputting. The dataframe is made from the lists that are filled above.
-	df_contact = pd.DataFrame(list(zip(pdb_type_list,
-									   pdb_list,
-									   Ab_type_list,
-									   Ab_chain_seq_list,
-									   Ab_chain_type_list,
-									   Ab_chain_id_list,
-									   Ab_domain_list,
-									   Ab_resi_id_list,
-									   Ab_resi_aa_list,
-									   Ab_atom_list,
-									   Ab_atom_coord_list,
-									   Ab_SS_list,
-									   Ab_resi_ASA_list,
-									   Ab_raw_extract_list,
-									   Ag_chain_id_list,
-									   Ag_resi_id_list,
-									   Ag_resi_aa_list,
-									   Ag_atom_list,
-									   Ag_atom_coord_list,
-									   Ag_SS_list,
-									   Ag_resi_ASA_list,
-									   Contact_distance_list,
-									   resolution_list,
-									   H_chain_organism_list,
-									   L_chain_organism_list,
-									   VH_FR1_ref_list,
-									   VH_CDR1_ref_list,
-									   VH_FR2_ref_list,
-									   VH_CDR2_ref_list,
-									   VH_FR3_ref_list,
-									   VH_CDR3_ref_list,
-									   VH_FR4_ref_list,
-									   VL_FR1_ref_list,
-									   VL_CDR1_ref_list,
-									   VL_FR2_ref_list,
-									   VL_CDR2_ref_list,
-									   VL_FR3_ref_list,
-									   VL_CDR3_ref_list,
-									   VL_FR4_ref_list
-									   )),
-							  columns=['Antigen type',
-									   'PDB',
-									   'Ab type',
-									   'Ab chain seq',
-									   'Ab chain type (VH/VL)',
-									   'Ab chain ID',
-									   'Ab domain',
-									   'Ab resi ID',
-									   'Ab resi aa',
-									   'Ab atom',
-									   'Ab atom coord',
-									   'Ab secondary structure',
-									   'Ab ASA',
-									   'Ab raw extract',
-									   'Ag chain ID',
-									   'Ag resi ID',
-									   'Ag resi aa',
-									   'Ag atom',
-									   'Ag atom coord',
-									   'Ag secondary structure',
-									   'Ag ASA',
-									   'Contact distance',
-									   'Structure resolution',
-									   'H chain organism',
-									   'L chain organism',
-									   '#aa in VH FR1 (ref)',
-									   '#aa in VH CDR1 (ref)',
-									   '#aa in VH FR2 (ref)',
-									   '#aa in VH CDR2 (ref)',
-									   '#aa in VH FR3 (ref)',
-									   '#aa in VH CDR3 (ref)',
-									   '#aa in VH FR4 (ref)',
-									   '#aa in VL FR1 (ref)',
-									   '#aa in VL CDR1 (ref)',
-									   '#aa in VL FR2 (ref)',
-									   '#aa in VL CDR2 (ref)',
-									   '#aa in VL FR3 (ref)',
-									   '#aa in VL CDR3 (ref)',
-									   '#aa in VL FR4 (ref)'
-									   ])
+	df_contact = pd.DataFrame(list(zip(
+		pdb_type_list, pdb_list, Ab_type_list, Ab_chain_seq_list, Ab_chain_type_list, Ab_chain_id_list, Ab_domain_list,
+		Ab_resi_id_list, Ab_resi_aa_list, Ab_atom_list, Ab_atom_coord_list, Ab_SS_list, Ab_resi_ASA_list,
+		Ab_raw_extract_list, Ag_chain_id_list, Ag_resi_id_list, Ag_resi_aa_list, Ag_atom_list, Ag_atom_coord_list,
+		Ag_SS_list, Ag_resi_ASA_list, Contact_distance_list, resolution_list, H_chain_organism_list,
+		L_chain_organism_list, VH_FR1_ref_list, VH_CDR1_ref_list, VH_FR2_ref_list, VH_CDR2_ref_list, VH_FR3_ref_list,
+		VH_CDR3_ref_list, VH_FR4_ref_list, VL_FR1_ref_list, VL_CDR1_ref_list, VL_FR2_ref_list, VL_CDR2_ref_list,
+		VL_FR3_ref_list, VL_CDR3_ref_list, VL_FR4_ref_list
+	)), columns=['Antigen type', 'PDB', 'Ab type', 'Ab chain seq', 'Ab chain type (VH/VL)', 'Ab chain ID', 'Ab domain',
+				 'Ab resi ID', 'Ab resi aa', 'Ab atom', 'Ab atom coord', 'Ab secondary structure', 'Ab ASA',
+				 'Ab raw extract', 'Ag chain ID', 'Ag resi ID', 'Ag resi aa', 'Ag atom', 'Ag atom coord',
+				 'Ag secondary structure', 'Ag ASA', 'Contact distance', 'Structure resolution', 'H chain organism',
+				 'L chain organism', '#aa in VH FR1 (ref)', '#aa in VH CDR1 (ref)', '#aa in VH FR2 (ref)',
+				 '#aa in VH CDR2 (ref)', '#aa in VH FR3 (ref)', '#aa in VH CDR3 (ref)', '#aa in VH FR4 (ref)',
+				 '#aa in VL FR1 (ref)', '#aa in VL CDR1 (ref)', '#aa in VL FR2 (ref)', '#aa in VL CDR2 (ref)',
+				 '#aa in VL FR3 (ref)', '#aa in VL CDR3 (ref)', '#aa in VL FR4 (ref)'])
 
-	df_ref = pd.DataFrame(list(zip(pdb_type_list_raw,
-								   pdb_list_raw,
-								   Ab_type_list_raw,
-								   Ab_chain_type_list_raw,
-								   Ab_chain_id_list_raw,
-								   Ab_domain_list_raw,
-								   Ab_resi_id_list_raw,
-								   Ab_resi_aa_list_raw,
-								   Ab_atom_list_raw,
-								   Ab_atom_coord_list_raw
-								   )),
-						  columns=['Antigen type',
-								   'PDB',
-								   'Ab type',
-								   'Ab chain type (VH/VL)',
-								   'Ab chain ID',
-								   'Ab domain',
-								   'Ab resi ID',
-								   'Ab resi aa',
-								   'Ab atom',
-								   'Ab atom coord'
-								   ])
+	df_ref = pd.DataFrame(list(zip(
+		pdb_type_list_raw, pdb_list_raw, Ab_type_list_raw, Ab_chain_type_list_raw, Ab_chain_id_list_raw,
+		Ab_domain_list_raw, Ab_resi_id_list_raw, Ab_resi_aa_list_raw, Ab_atom_list_raw, Ab_atom_coord_list_raw )),
+		columns=['Antigen type', 'PDB', 'Ab type', 'Ab chain type (VH/VL)', 'Ab chain ID', 'Ab domain', 'Ab resi ID',
+				 'Ab resi aa', 'Ab atom', 'Ab atom coord' ])
 
-	#return df_contact
-	return df_ref
+	return df_contact, df_ref
 
 
 # Loading in the data from the summary file
@@ -683,14 +591,8 @@ if __name__ == '__main__':
 	pool = Pool(mul)
 	results = pool.map(main_func, data.iterrows())
 
-	#TODO: figure out to allow the script to output both results from contact and results from reference data
-
-	results_contact = pd.concat(results)
+	results_contact = pd.concat([x[0] for x in results])
 	results_contact.to_csv('Output_contact.csv', sep=';')
 
-	#results_ref = pd.concat(results)
-	#results_ref.to_csv('Output_ref.csv', sep=';')
-
-
-
-
+	results_ref = pd.concat([x[1] for x in results])
+	results_ref.to_csv('Output_ref.csv', sep=';')

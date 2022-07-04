@@ -37,7 +37,7 @@ with open("Cluster.txt", "r") as a_file:
 	# Go through all lines of cluster file outputted from CD-HIT
 	for line in a_file:
 		if line.count('>Cluster'):
-			Cluster_ID = Cluster_ID + 1  # If new cluster is identified add to counter
+			Cluster_ID += 1  # If new cluster is identified add to counter
 
 		# In the specific line go over all the pdb entries and see if any of them match.
 		# If the pdb entry is found on the line this specific cluster id is added to the list with index mathing

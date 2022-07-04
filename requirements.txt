@@ -1,4 +1,3 @@
 # future versions of all packages may well work. We just havent testest them.
-numpy==1.23.0
 pandas==1.4.3
 biopython==1.79
