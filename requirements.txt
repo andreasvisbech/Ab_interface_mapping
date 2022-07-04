@@ -1,3 +1,4 @@
 # future versions of all packages may well work. We just havent testest them.
 pandas==1.4.3
 biopython==1.79
+pyarrow==8.0.0

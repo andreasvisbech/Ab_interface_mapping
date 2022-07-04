@@ -6,8 +6,7 @@ SCRIPT #1:
   * Extracting fasta sequences of antibody variable domains.
   * Counting the number of amino acids in the different antibody domains of each chain. 
 
-- Takes "Summary_all.tsv", "Thera_all.tsv" and pdb files located in "imgt_all_clean" folder. 
-- The pdb folder path and the input files are hard coded after defining the functions (approx. line 171). 
+- Takes "Summary_all.tsv" and pdb files located in "imgt_all_clean" folder.  
 
 SCRIPT #2:
 

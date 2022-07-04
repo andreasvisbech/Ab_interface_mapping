@@ -2,6 +2,10 @@ import statistics
 from pathlib import Path
 import pandas as pd
 from Bio.PDB import PDBParser
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+
 
 from shared_funcs import get_ab_type, aa_list, aa_dict
 
@@ -12,11 +16,11 @@ def get_vhvl_seq(structure, v_id):
 	# The function extracts the amino acid sequence of the VH or VL domain.
 	for Ab_resi_func in structure[0][v_id]:
 		# Check that the residue is an amino acid
-		if str(Ab_resi_func.get_resname()) in aa_list:
+		if Ab_resi_func.get_resname() in aa_list:
 
 			# Check if the aa belongs to V domain if the residue ID is smaller or equal to 128
 			if int(Ab_resi_func.get_id()[1]) <= 128:
-				ab_aa_3letter = str(Ab_resi_func.get_resname())
+				ab_aa_3letter = Ab_resi_func.get_resname()
 				ab_aa = aa_dict[ab_aa_3letter]
 				seq += ab_aa
 
@@ -33,38 +37,33 @@ def create_fasta(summary_data: pd.DataFrame, parser, pdb_path: Path, output_path
 	:param output_path:
 	:return: Nothing
 	"""
-	fasta = ""
-	for a in range(summary_data.shape[0]):
-		print(str(a) + ' --- ' + str(summary_data.iloc[a][0]))
+	sequences = []
+	for i, row in summary_data.iterrows():
+		print(i, ' --- ', row.pdb)
 
 		# Loading in the pdb file
-		pdb2 = pdb_path / f"{summary_data.iloc[a][0]}.pdb"
-		structure = parser.get_structure("structure", pdb2)
+		pdb_file = pdb_path / f"{row.pdb}.pdb"
+		structure = parser.get_structure("structure", pdb_file)
 
 		# Getting the antibody type and the associated chain ids for antibody chains
-		VH_id = str(summary_data.iloc[a][1])
-		VL_id = str(summary_data.iloc[a][2])
-		Ab_type = get_ab_type(VH_id, VL_id)
+		vh_id = row.Hchain
+		vl_id = row.Lchain
+		ab_type = get_ab_type(row[['Hchain', 'Lchain']].isna())
 
-		if Ab_type == 'Fv':
-			VH_seq = get_vhvl_seq(structure, VH_id)
-			VL_seq = get_vhvl_seq(structure, VL_id)
+		if ab_type == 'Fv':
+			vh_seq = get_vhvl_seq(structure, vh_id)
+			vl_seq = get_vhvl_seq(structure, vl_id)
+			sequences.append(SeqRecord(Seq(vh_seq), id=f"{row.pdb}_VH", description=""))
+			sequences.append(SeqRecord(Seq(vl_seq), id=f"{row.pdb}_VL", description=""))
+		elif ab_type == 'VH sdAb':
+			vh_seq = get_vhvl_seq(structure, vh_id)
+			sequences.append(SeqRecord(Seq(vh_seq), id=f"{row.pdb}_VH", description=""))
+		elif ab_type == 'VL sdAb':
+			vl_seq = get_vhvl_seq(structure, vl_id)
+			sequences.append(SeqRecord(Seq(vl_seq), id=f"{row.pdb}_VL", description=""))
 
-			fasta += '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VH_seq + '\n'
-			fasta += '>' + str(summary_data.iloc[a][0]) + ', VL' + '\n' + VL_seq + '\n'
-
-		elif Ab_type == 'VH sdAb':
-			VH_seq = get_vhvl_seq(structure, VH_id)
-
-			fasta += '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VH_seq + '\n'
-
-		elif Ab_type == 'VL sdAb':
-			VL_seq = get_vhvl_seq(structure, VL_id)
-
-			fasta += '>' + str(summary_data.iloc[a][0]) + ', VH' + '\n' + VL_seq + '\n'
-
-	with open(output_path / "fasta.fa", "w") as fasta_out:
-		fasta_out.write(fasta)
+	with open(output_path / "fasta.fa", "w") as output_handle:
+		SeqIO.write(sequences, output_handle, "fasta")
 
 
 def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
@@ -101,199 +100,181 @@ def main(summary_data: pd.DataFrame, pdb_path: Path, output_path: Path):
 		else:
 			bfactor_avr = []
 
-			for c in range(my_pd.shape[0]):
-				Ag_chain_list = []
-				Ab_chain_list = []
+			for i, row in my_pd:
+				ag_chain_list = []
+				ab_chain_list = []
 
-				VH_id = str(my_pd.iloc[c][1])
-				VL_id = str(my_pd.iloc[c][2])
+				if len(row.antigen_chain) == 1:  # Append the antigen chains to the chain list
+					ag_chain_list.append(row.antigen_chain[0])
+				elif len(row.antigen_chain) == 5:
+					ag_chain_list.append(row.antigen_chain[0])
+					ag_chain_list.append(row.antigen_chain[4])
+				elif len(row.antigen_chain) == 9:
+					ag_chain_list.append(row.antigen_chain[0])
+					ag_chain_list.append(row.antigen_chain[4])
+					ag_chain_list.append(row.antigen_chain[8])
 
-				if len(str(my_pd.iloc[c][4])) == 1:  # Append the antigen chains to the chain list
-					Ag_chain_list.append(str(my_pd.iloc[c][4][0]))
-				elif len(str(my_pd.iloc[c][4])) == 5:
-					Ag_chain_list.append(str(my_pd.iloc[c][4][0]))
-					Ag_chain_list.append(str(my_pd.iloc[c][4][4]))
-				elif len(str(my_pd.iloc[c][4])) == 9:
-					Ag_chain_list.append(str(my_pd.iloc[c][4][0]))
-					Ag_chain_list.append(str(my_pd.iloc[c][4][4]))
-					Ag_chain_list.append(str(my_pd.iloc[c][4][8]))
-
-				if VH_id.find('nan') < 0 and VL_id.find('nan') < 0:  # Append the Ab chains to the chain list
-					Ab_type = 'Fv'
-					Ab_chain_list.append(str(my_pd.iloc[c][1]))
-					Ab_chain_list.append(str(my_pd.iloc[c][2]))
-
-				elif VH_id.find('nan') < 0 and VL_id.find('nan') >= 0:
-					Ab_type = 'VH sdAb'
-					Ab_chain_list.append(str(my_pd.iloc[c][1]))
-
-				elif VH_id.find('nan') >= 0 and VL_id.find('nan') < 0:
-					Ab_type = 'VL sdAb'
-					Ab_chain_list.append(str(my_pd.iloc[c][2]))
+				ab_type = get_ab_type(row[['Hchain', 'Lchain']].isna())
+				if ab_type == 'Fv':
+					ab_chain_list.append(row.Hchain)
+					ab_chain_list.append(row.Lchain)
+				elif ab_type == 'VH sdAb':
+					ab_chain_list.append(row.Hchain)
+				elif ab_type == 'VL sdAb':
+					ab_chain_list.append(row.Lchain)
 
 				bfactor_list = []
 
 				# Go over all atoms in antibody and get bfactors for each atom
-				for chain_ID in Ab_chain_list:
+				for chain_ID in ab_chain_list:
 					for residue_A in structure[0][chain_ID]:
-						if any(str(residue_A.get_resname()) == x for x in aa_list):  # Only include if the residue is an amino acid
+						if residue_A.get_resname() in aa_list:  # Only include if the residue is an amino acid
 							for atom_A in residue_A:
 								bfactor_list.append(atom_A.get_bfactor())
 
 				# Go over all atoms in antigen and get bfactors for each atom
-				for chain_ID in Ag_chain_list:
+				for chain_ID in ag_chain_list:
 					for residue_B in structure[0][chain_ID]:
-						if any(str(residue_B.get_resname()) == x for x in aa_list):  # Only include if the residue is an amino acid
+						if residue_B.get_resname() in aa_list:  # Only include if the residue is an amino acid
 							for atom_B in residue_B:
 								bfactor_list.append(atom_B.get_bfactor())
 
 				bfactor_avr.append(statistics.mean(bfactor_list))
 
 			bfactor_min_idx = bfactor_avr.index(min(bfactor_avr))
-			pd_list.append(my_pd.iloc[bfactor_min_idx].tolist())
+			pd_list.append(my_pd.iloc[bfactor_min_idx])
 
-	summary_data = pd.DataFrame(data=pd_list, columns=summary_data.columns.values)
+	summary_data = pd.DataFrame(pd_list)
 
 	# Create for loop for counting amino acids in the different domains
 	resi_tot_list = []
-	CDR_tot_list = []
-	VH_FR1_list = []
-	VH_CDR1_list = []
-	VH_FR2_list = []
-	VH_CDR2_list = []
-	VH_FR3_list = []
-	VH_CDR3_list = []
-	VH_FR4_list = []
-	VL_FR1_list = []
-	VL_CDR1_list = []
-	VL_FR2_list = []
-	VL_CDR2_list = []
-	VL_FR3_list = []
-	VL_CDR3_list = []
-	VL_FR4_list = []
+	cdr_tot_list = []
+	vh_fr1_list = []
+	vh_cdr1_list = []
+	vh_fr2_list = []
+	vh_cdr2_list = []
+	vh_fr3_list = []
+	vh_cdr3_list = []
+	vh_fr4_list = []
+	vl_fr1_list = []
+	vl_cdr1_list = []
+	vl_fr2_list = []
+	vl_cdr2_list = []
+	vl_fr3_list = []
+	vl_cdr3_list = []
+	vl_fr4_list = []
 
-	for e in range(summary_data.shape[0]):
+	for i, row in summary_data.iterrows():
 		resi_tot = 0
-		CDR_tot = 0
+		cdr_tot = 0
 
-		VH_FR1 = 0
-		VH_CDR1 = 0
-		VH_FR2 = 0
-		VH_CDR2 = 0
-		VH_FR3 = 0
-		VH_CDR3 = 0
-		VH_FR4 = 0
+		vh_fr1 = 0
+		vh_cdr1 = 0
+		vh_fr2 = 0
+		vh_cdr2 = 0
+		vh_fr3 = 0
+		vh_cdr3 = 0
+		vh_fr4 = 0
 
-		VL_FR1 = 0
-		VL_CDR1 = 0
-		VL_FR2 = 0
-		VL_CDR2 = 0
-		VL_FR3 = 0
-		VL_CDR3 = 0
-		VL_FR4 = 0
+		vl_fr1 = 0
+		vl_cdr1 = 0
+		vl_fr2 = 0
+		vl_cdr2 = 0
+		vl_fr3 = 0
+		vl_cdr3 = 0
+		vl_fr4 = 0
 
-		pdb3 = pdb_path / f"{summary_data['pdb'][e]}.pdb"
+		pdb3 = pdb_path / f"{row.pdb}.pdb"
 		structure = parser.get_structure("structure", pdb3)
 
-		VH_id = str(summary_data.iloc[e][1])
-		VL_id = str(summary_data.iloc[e][2])
+		vh_id = row.Hchain
+		vl_id = row.Lchain
 
 		# If a VH id is given in the summary file count residues in the different domains
-		if VH_id != 'nan':
-			for residue_C in structure[0][VH_id]:
-				if any(str(residue_C.get_resname()) == x for x in aa_list):  # Only include if the residue is an amino acid
-
+		if not row.isna().Hchain:
+			for residue_C in structure[0][vh_id]:
+				if residue_C.get_resname() in aa_list:  # Only include if the residue is an amino acid
 					if residue_C.get_id()[1] < 27:
 						resi_tot += 1
-						VH_FR1 += 1
+						vh_fr1 += 1
 					elif 27 <= residue_C.get_id()[1] <= 38:
 						resi_tot += 1
-						VH_CDR1 += 1
-						CDR_tot += 1
+						vh_cdr1 += 1
+						cdr_tot += 1
 					elif 39 <= residue_C.get_id()[1] <= 55:
 						resi_tot += 1
-						VH_FR2 += 1
+						vh_fr2 += 1
 					elif 56 <= residue_C.get_id()[1] <= 65:
 						resi_tot += 1
-						VH_CDR2 += 1
-						CDR_tot += 1
+						vh_cdr2 += 1
+						cdr_tot += 1
 					elif 66 <= residue_C.get_id()[1] <= 104:
 						resi_tot += 1
-						VH_FR3 += 1
+						vh_fr3 += 1
 					elif 105 <= residue_C.get_id()[1] <= 117:
 						resi_tot += 1
-						VH_CDR3 += 1
-						CDR_tot += 1
+						vh_cdr3 += 1
+						cdr_tot += 1
 					elif 118 <= residue_C.get_id()[1] <= 128:
 						resi_tot += 1
-						VH_FR4 += 1
+						vh_fr4 += 1
 
 		# If a VL id is given in the summary file count residues in the different domains
-		if VL_id != 'nan':
-			for residue_D in structure[0][VL_id]:
-				if any(str(residue_D.get_resname()) == x for x in aa_list):  # Only include if the residue is an amino acid
+		if not row.isna().Lchain:
+			for residue_D in structure[0][vl_id]:
+				if residue_D.get_resname() in aa_list:  # Only include if the residue is an amino acid
 					if residue_D.get_id()[1] < 27:
 						resi_tot += 1
-						VL_FR1 += 1
+						vl_fr1 += 1
 					elif 27 <= residue_D.get_id()[1] <= 38:
 						resi_tot += 1
-						VL_CDR1 += 1
-						CDR_tot += 1
+						vl_cdr1 += 1
+						cdr_tot += 1
 					elif 39 <= residue_D.get_id()[1] <= 55:
 						resi_tot += 1
-						VL_FR2 += 1
+						vl_fr2 += 1
 					elif 56 <= residue_D.get_id()[1] <= 65:
 						resi_tot += 1
-						VL_CDR2 += 1
-						CDR_tot += 1
+						vl_cdr2 += 1
+						cdr_tot += 1
 					elif 66 <= residue_D.get_id()[1] <= 104:
 						resi_tot += 1
-						VL_FR3 += 1
+						vl_fr3 += 1
 					elif 105 <= residue_D.get_id()[1] <= 117:
 						resi_tot += 1
-						VL_CDR3 += 1
-						CDR_tot += 1
+						vl_cdr3 += 1
+						cdr_tot += 1
 					elif 118 <= residue_D.get_id()[1] <= 128:
 						resi_tot += 1
-						VL_FR4 += 1
+						vl_fr4 += 1
 
 		resi_tot_list.append(resi_tot)
-		CDR_tot_list.append(CDR_tot)
-		VH_FR1_list.append(VH_FR1)
-		VH_CDR1_list.append(VH_CDR1)
-		VH_FR2_list.append(VH_FR2)
-		VH_CDR2_list.append(VH_CDR2)
-		VH_FR3_list.append(VH_FR3)
-		VH_CDR3_list.append(VH_CDR3)
-		VH_FR4_list.append(VH_FR4)
-		VL_FR1_list.append(VL_FR1)
-		VL_CDR1_list.append(VL_CDR1)
-		VL_FR2_list.append(VL_FR2)
-		VL_CDR2_list.append(VL_CDR2)
-		VL_FR3_list.append(VL_FR3)
-		VL_CDR3_list.append(VL_CDR3)
-		VL_FR4_list.append(VL_FR4)
+		cdr_tot_list.append(cdr_tot)
+		vh_fr1_list.append(vh_fr1)
+		vh_cdr1_list.append(vh_cdr1)
+		vh_fr2_list.append(vh_fr2)
+		vh_cdr2_list.append(vh_cdr2)
+		vh_fr3_list.append(vh_fr3)
+		vh_cdr3_list.append(vh_cdr3)
+		vh_fr4_list.append(vh_fr4)
+		vl_fr1_list.append(vl_fr1)
+		vl_cdr1_list.append(vl_cdr1)
+		vl_fr2_list.append(vl_fr2)
+		vl_cdr2_list.append(vl_cdr2)
+		vl_fr3_list.append(vl_fr3)
+		vl_cdr3_list.append(vl_cdr3)
+		vl_fr4_list.append(vl_fr4)
 
-	CDR_data = pd.DataFrame({
-		'Total residues in Ab V domain': resi_tot_list,
-		'Total CDR residues': CDR_tot_list,
-		'#aa in VH FR1 (ref)': VH_FR1_list,
-		'#aa in VH CDR1 (ref)': VH_CDR1_list,
-		'#aa in VH FR2 (ref)': VH_FR2_list,
-		'#aa in VH CDR2 (ref)': VH_CDR2_list,
-		'#aa in VH FR3 (ref)': VH_FR3_list,
-		'#aa in VH CDR3 (ref)': VH_CDR3_list,
-		'#aa in VH FR4 (ref)': VH_FR4_list,
-		'#aa in VL FR1 (ref)': VL_FR1_list,
-		'#aa in VL CDR1 (ref)': VL_CDR1_list,
-		'#aa in VL FR2 (ref)': VL_FR2_list,
-		'#aa in VL CDR2 (ref)': VL_CDR2_list,
-		'#aa in VL FR3 (ref)': VL_FR3_list,
-		'#aa in VL CDR3 (ref)': VL_CDR3_list,
-		'#aa in VL FR4 (ref)': VL_FR4_list}
+	cdr_data = pd.DataFrame({
+		'Total residues in Ab V domain': resi_tot_list, 'Total CDR residues': cdr_tot_list,
+		'#aa in VH FR1 (ref)': vh_fr1_list, '#aa in VH CDR1 (ref)': vh_cdr1_list, '#aa in VH FR2 (ref)': vh_fr2_list,
+		'#aa in VH CDR2 (ref)': vh_cdr2_list, '#aa in VH FR3 (ref)': vh_fr3_list, '#aa in VH CDR3 (ref)': vh_cdr3_list,
+		'#aa in VH FR4 (ref)': vh_fr4_list, '#aa in VL FR1 (ref)': vl_fr1_list, '#aa in VL CDR1 (ref)': vl_cdr1_list,
+		'#aa in VL FR2 (ref)': vl_fr2_list, '#aa in VL CDR2 (ref)': vl_cdr2_list, '#aa in VL FR3 (ref)': vl_fr3_list,
+		'#aa in VL CDR3 (ref)': vl_cdr3_list, '#aa in VL FR4 (ref)': vl_fr4_list}
 	)
-	data4 = pd.concat([summary_data, CDR_data], axis=1)
-	data4.to_csv(output_path / 'Summary_all_sorted.csv', sep=';', index=False)
+	data4 = pd.concat([summary_data, cdr_data], axis=1)
+	data4.to_feather(output_path / 'Summary_all_sorted.fea.zst', compression='zstd')
 	create_fasta(summary_data, parser, pdb_path, output_path)
 
 

@@ -10,5 +10,5 @@ class TestScript1:
 			output_path=Path(tmp_path)
 		)
 
-		assert cmp(tmp_path / "fasta.fa", "test/test_data/Script1/fasta.fa")
-		assert cmp(tmp_path / "Summary_all_sorted.csv", "test/test_data/Script1/Summary_all_sorted.csv")
+		assert cmp(tmp_path / "fasta.fa", "test/test_data/Script1/output/fasta.fa")
+		assert cmp(tmp_path / "Summary_all_sorted.fea.zst", "test/test_data/Script1/output/Summary_all_sorted.fea.zst")
