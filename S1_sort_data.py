@@ -1,5 +1,6 @@
-from statistics import mean
 from pathlib import Path
+from argparse import ArgumentParser
+
 from pandas import read_csv, DataFrame, concat
 from Bio.PDB import PDBParser
 from Bio import SeqIO
@@ -82,8 +83,8 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 	pd_list = []
 	parser = PDBParser()  # Load parser
 
-	for unique_pdb_name in pdb_list_unique:
-		print(unique_pdb_name)
+	for iu, unique_pdb_name in enumerate(pdb_list_unique):
+		print(f"{iu}/{len(pdb_list_unique)}: {unique_pdb_name}")
 		# Loading the pdb structure into python
 		pdb1 = pdb_path / f"{unique_pdb_name}.pdb"
 		structure = parser.get_structure("structure", pdb1)
@@ -100,7 +101,7 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 		else:
 			bfactor_avr = []
 
-			for i, row in my_pd:
+			for i, row in my_pd.iterrows():
 				ag_chain_list = []
 				ab_chain_list = []
 
@@ -113,6 +114,8 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 					ag_chain_list.append(row.antigen_chain[0])
 					ag_chain_list.append(row.antigen_chain[4])
 					ag_chain_list.append(row.antigen_chain[8])
+				else:
+					print(f"Warning: antigen chain can't be parsed: {unique_pdb_name}")
 
 				ab_type = get_ab_type(row[['Hchain', 'Lchain']].isna())
 				if ab_type == 'Fv':
@@ -139,7 +142,7 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 							for atom_B in residue_B:
 								bfactor_list.append(atom_B.get_bfactor())
 
-				bfactor_avr.append(mean(bfactor_list))
+				bfactor_avr.append(sum(bfactor_list)/len(bfactor_list))
 
 			bfactor_min_idx = bfactor_avr.index(min(bfactor_avr))
 			pd_list.append(my_pd.iloc[bfactor_min_idx])
@@ -147,42 +150,12 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 	summary_data = DataFrame(pd_list)
 
 	# Create for loop for counting amino acids in the different domains
-	resi_tot_list = []
-	cdr_tot_list = []
-	vh_fr1_list = []
-	vh_cdr1_list = []
-	vh_fr2_list = []
-	vh_cdr2_list = []
-	vh_fr3_list = []
-	vh_cdr3_list = []
-	vh_fr4_list = []
-	vl_fr1_list = []
-	vl_cdr1_list = []
-	vl_fr2_list = []
-	vl_cdr2_list = []
-	vl_fr3_list = []
-	vl_cdr3_list = []
-	vl_fr4_list = []
+	rows = {}
 
 	for i, row in summary_data.iterrows():
-		resi_tot = 0
-		cdr_tot = 0
-
-		vh_fr1 = 0
-		vh_cdr1 = 0
-		vh_fr2 = 0
-		vh_cdr2 = 0
-		vh_fr3 = 0
-		vh_cdr3 = 0
-		vh_fr4 = 0
-
-		vl_fr1 = 0
-		vl_cdr1 = 0
-		vl_fr2 = 0
-		vl_cdr2 = 0
-		vl_fr3 = 0
-		vl_cdr3 = 0
-		vl_fr4 = 0
+		resi_tot = cdr_tot = 0
+		vh_fr1 = vh_cdr1 = vh_fr2 = vh_cdr2 = vh_fr3 = vh_cdr3 = vh_fr4 = 0
+		vl_fr1 = vl_cdr1 = vl_fr2 = vl_cdr2 = vl_fr3 = vl_cdr3 = vl_fr4 = 0
 
 		pdb3 = pdb_path / f"{row.pdb}.pdb"
 		structure = parser.get_structure("structure", pdb3)
@@ -248,39 +221,26 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 						resi_tot += 1
 						vl_fr4 += 1
 
-		resi_tot_list.append(resi_tot)
-		cdr_tot_list.append(cdr_tot)
-		vh_fr1_list.append(vh_fr1)
-		vh_cdr1_list.append(vh_cdr1)
-		vh_fr2_list.append(vh_fr2)
-		vh_cdr2_list.append(vh_cdr2)
-		vh_fr3_list.append(vh_fr3)
-		vh_cdr3_list.append(vh_cdr3)
-		vh_fr4_list.append(vh_fr4)
-		vl_fr1_list.append(vl_fr1)
-		vl_cdr1_list.append(vl_cdr1)
-		vl_fr2_list.append(vl_fr2)
-		vl_cdr2_list.append(vl_cdr2)
-		vl_fr3_list.append(vl_fr3)
-		vl_cdr3_list.append(vl_cdr3)
-		vl_fr4_list.append(vl_fr4)
+		rows[i] = {
+			'Total residues in Ab V domain': resi_tot, 'Total CDR residues': cdr_tot, '#aa in VH FR1 (ref)': vh_fr1,
+			'#aa in VH CDR1 (ref)': vh_cdr1, '#aa in VH FR2 (ref)': vh_fr2, '#aa in VH CDR2 (ref)': vh_cdr2,
+			'#aa in VH FR3 (ref)': vh_fr3, '#aa in VH CDR3 (ref)': vh_cdr3, '#aa in VH FR4 (ref)': vh_fr4,
+			'#aa in VL FR1 (ref)': vl_fr1, '#aa in VL CDR1 (ref)': vl_cdr1, '#aa in VL FR2 (ref)': vl_fr2,
+			'#aa in VL CDR2 (ref)': vl_cdr2, '#aa in VL FR3 (ref)': vl_fr3, '#aa in VL CDR3 (ref)': vl_cdr3,
+			'#aa in VL FR4 (ref)': vl_fr4
+		}
 
-	cdr_data = DataFrame({
-		'Total residues in Ab V domain': resi_tot_list, 'Total CDR residues': cdr_tot_list,
-		'#aa in VH FR1 (ref)': vh_fr1_list, '#aa in VH CDR1 (ref)': vh_cdr1_list, '#aa in VH FR2 (ref)': vh_fr2_list,
-		'#aa in VH CDR2 (ref)': vh_cdr2_list, '#aa in VH FR3 (ref)': vh_fr3_list, '#aa in VH CDR3 (ref)': vh_cdr3_list,
-		'#aa in VH FR4 (ref)': vh_fr4_list, '#aa in VL FR1 (ref)': vl_fr1_list, '#aa in VL CDR1 (ref)': vl_cdr1_list,
-		'#aa in VL FR2 (ref)': vl_fr2_list, '#aa in VL CDR2 (ref)': vl_cdr2_list, '#aa in VL FR3 (ref)': vl_fr3_list,
-		'#aa in VL CDR3 (ref)': vl_cdr3_list, '#aa in VL FR4 (ref)': vl_fr4_list}
-	)
-	data4 = concat([summary_data, cdr_data], axis=1)
+	cdr_data = DataFrame.from_dict(rows, orient='index')
+	# joining the summary and the cdr data. Dropping index because we don't need it and feather doesn't support it.
+	data4 = concat([summary_data, cdr_data], axis=1).reset_index(drop=True)
 	data4.to_feather(output_path / 'Summary_all_sorted.fea.zst', compression='zstd')
 	create_fasta(summary_data, parser, pdb_path, output_path)
 
 
 if __name__ == "__main__":
-	main(
-		summary_data_path=Path('test/test_data/Script1/Summary_all.tsv'),
-		pdb_path=Path("test/test_data/Script1/imgt_all_clean/"),
-		output_path=Path("./")
-	)
+	parser = ArgumentParser()
+	parser.add_argument("-s", default=Path('test/work_dir/Summary_all.tsv'), type=Path, help="Path to Summary_all.tsv")
+	parser.add_argument("-p", default=Path('test/work_dir/imgt_all_clean'), type=Path, help="Path folder with pdb files")
+	parser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
+	args = parser.parse_args()
+	main(summary_data_path=args.s, pdb_path=args.p, output_path=args.o)

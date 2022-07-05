@@ -1,9 +1,9 @@
-import pandas as pd
+from pandas import read_feather, DataFrame
 from pathlib import Path
 
 
 def main(summary_data_path: Path, cluster_path: Path, output_path: Path):
-	summary_data = pd.read_feather(summary_data_path)
+	summary_data = read_feather(summary_data_path)
 
 	file1_list = []
 
@@ -106,7 +106,7 @@ def main(summary_data_path: Path, cluster_path: Path, output_path: Path):
 		if final_list.count(summary_data['pdb'][i]) == 1:
 			file1_list.append(summary_data.iloc[i].tolist())
 
-	data2 = pd.DataFrame(data=file1_list, columns=summary_data.columns.values)
+	data2 = DataFrame(data=file1_list, columns=summary_data.columns.values)
 	data2.to_feather(output_path / 'Summary_all_sorted_nonredundant.fea.zst', compression='zstd')
 
 
