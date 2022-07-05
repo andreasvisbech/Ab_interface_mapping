@@ -1,12 +1,10 @@
 from pathlib import Path
 from argparse import ArgumentParser
-
 from pandas import read_csv, DataFrame, concat
 from Bio.PDB import PDBParser
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-
 from shared_funcs import get_ab_type, aa_list, aa_dict
 
 
@@ -39,7 +37,7 @@ def create_fasta(summary_data: DataFrame, parser: PDBParser, pdb_path: Path, out
 	"""
 	sequences = []
 	for i, row in summary_data.iterrows():
-		print(i, ' --- ', row.pdb)
+		print(f'{i}/{len(summary_data)}, writing fasta from {row.pdb}')
 
 		# Loading in the pdb file
 		pdb_file = pdb_path / f"{row.pdb}.pdb"

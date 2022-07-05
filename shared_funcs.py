@@ -19,4 +19,5 @@ def get_ab_type(is_id_na: Series):
 	elif vh_id and not vl_id:
 		return 'VL sdAb'
 	else:
+		print('Ab type not recognized!')
 		return 'N/A'
