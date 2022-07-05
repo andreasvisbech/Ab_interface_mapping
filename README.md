@@ -1,4 +1,7 @@
-SCRIPT #1:
+# Required on path
+- [dssp](https://github.com/PDB-REDO/dssp). Can be installed on ubuntu with "apt install dssp"
+
+# SCRIPT #1:
 
 - AIM: The overall aim is to modify the summary file which functions as a "road map" for the analysis. 
   * Removing lines where H chain and L chain has the same ID. 
@@ -8,7 +11,7 @@ SCRIPT #1:
 
 - Takes "Summary_all.tsv" and pdb files located in "imgt_all_clean" folder.  
 
-SCRIPT #2:
+# SCRIPT #2:
 
 - AIM: The overall aim is to modify the summary file
  * Exclude lines that represent homologous antibodies based on the clustering analysis. 
@@ -17,7 +20,7 @@ SCRIPT #2:
 - Takes 'Summary_all_sorted.csv' hard coded on line 3
 - Takes "Cluster.txt" hard coded on line 36. The cluster file is made with CD-HIT and the fasta file generated from script #1. 
 
-SCRIPT #3:
+# SCRIPT #3:
 
 - AIM: Takes summary file from script #2 and pdb files. Then uses summary file as road map and looks through all pdb files for atom-atom contacts. 
 

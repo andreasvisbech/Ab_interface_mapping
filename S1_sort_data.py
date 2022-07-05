@@ -36,7 +36,7 @@ def create_fasta(summary_data: DataFrame, parser: PDBParser, pdb_path: Path, out
 	:return: Nothing
 	"""
 	sequences = []
-	for i, row in summary_data.iterrows():
+	for i, row in summary_data.reset_index(drop=True).iterrows():
 		print(f'{i}/{len(summary_data)}, writing fasta from {row.pdb}')
 
 		# Loading in the pdb file
@@ -64,7 +64,7 @@ def create_fasta(summary_data: DataFrame, parser: PDBParser, pdb_path: Path, out
 		SeqIO.write(sequences, output_handle, "fasta")
 
 
-def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
+def main(summary_data_path: Path, pdb_path: Path, output_path: Path, csv_output: bool):
 	summary_data = read_csv(summary_data_path, sep='\t')
 	# Remove all antibodies where antigen is N/A or H chain and L chain are the same i.e. scFvs
 	# where H chain and L chain are not properly annotated
@@ -232,13 +232,16 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 	# joining the summary and the cdr data. Dropping index because we don't need it and feather doesn't support it.
 	data4 = concat([summary_data, cdr_data], axis=1).reset_index(drop=True)
 	data4.to_parquet(output_path / 'Summary_all_sorted.parquet')
+	if csv_output:
+		data4.to_csv(output_path / 'Summary_all_sorted.csv')
 	create_fasta(summary_data, parser, pdb_path, output_path)
 
 
 if __name__ == "__main__":
-	parser = ArgumentParser()
-	parser.add_argument("-s", default=Path('test/work_dir/Summary_all.tsv'), type=Path, help="Path to Summary_all.tsv")
-	parser.add_argument("-p", default=Path('test/work_dir/imgt_all_clean'), type=Path, help="Path folder with pdb files")
-	parser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
-	args = parser.parse_args()
-	main(summary_data_path=args.s, pdb_path=args.p, output_path=args.o)
+	argparser = ArgumentParser()
+	argparser.add_argument("-s", default=Path('test/work_dir/Summary_all.tsv'), type=Path, help="Path to Summary_all.tsv")
+	argparser.add_argument("-p", default=Path('test/work_dir/imgt_all_clean'), type=Path, help="Path folder with pdb files")
+	argparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
+	argparser.add_argument("--csv", action='store_true', help="Also output csv format")
+	args = argparser.parse_args()
+	main(summary_data_path=args.s, pdb_path=args.p, output_path=args.o, csv_output=args.csv)
