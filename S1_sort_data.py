@@ -231,7 +231,7 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
 	cdr_data = DataFrame.from_dict(rows, orient='index')
 	# joining the summary and the cdr data. Dropping index because we don't need it and feather doesn't support it.
 	data4 = concat([summary_data, cdr_data], axis=1).reset_index(drop=True)
-	data4.to_feather(output_path / 'Summary_all_sorted.fea.zst', compression='zstd')
+	data4.to_parquet(output_path / 'Summary_all_sorted.parquet')
 	create_fasta(summary_data, parser, pdb_path, output_path)
 
 

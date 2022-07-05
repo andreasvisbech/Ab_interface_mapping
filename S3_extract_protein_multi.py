@@ -1,16 +1,10 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from Bio.PDB import *
+from Bio.PDB import PDBParser, PPBuilder
 from Bio.PDB.DSSP import DSSP
-
 from multiprocessing import Pool
-
-# Set number of multiprocesses
-mul = 16
-
-parser = PDBParser()
-ppb = PPBuilder()
+from pathlib import Path
 
 
 # Loading functions
@@ -64,7 +58,7 @@ def get_Ab_type(VH_id, VL_id):
 
 def get_chain_seq(structure, chain_id):
 	# The function gets the full sequence of the antibody chain in question.
-
+	ppb = PPBuilder()
 	func_var = ''
 	try:
 		for pp in ppb.build_peptides(structure[0][chain_id]):
@@ -302,7 +296,7 @@ def set_parameters():
 	contact_cutoff = 5
 
 	# Setting path for the pdb files
-	path = '/work1/avima/Ab_interface/imgt_all_clean_align/'
+	path = '/home/laeb/data/active_work/andreas_review/Script#3/imgt_all_clean_align/'
 
 	# Initialize variables for run
 	aa_list = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CYS', 'GLY', 'PRO', 'ALA', 'ILE', 'LEU',
@@ -313,7 +307,7 @@ def set_parameters():
 	return contact_cutoff, path, aa_list, domain_list
 
 
-def main_func(line):
+def pool_runner(line):
 	pdb_type_list = []
 	pdb_list = []
 	Ab_type_list = []
@@ -379,10 +373,11 @@ def main_func(line):
 
 	# Loading in the pdb file
 	pdb1 = str(path + line['pdb'] + '.pdb')
+	parser = PDBParser()
 	structure = parser.get_structure("structure", pdb1)
 
 	# Getting dssp dict
-	dssp_dict = DSSP(structure[0], pdb1, dssp='/work1/avima/Ab_interface/Data_extract/dssp-2.0.4-linux-amd64')
+	dssp_dict = DSSP(structure[0], pdb1, dssp='/home/laeb/data/active_work/andreas_review/Script#3/dssp-2.0.4-linux-amd64')
 
 	# Get antigen type
 	pdb_type = line['Antigen group']
@@ -584,15 +579,20 @@ def main_func(line):
 	return df_contact, df_ref
 
 
-# Loading in the data from the summary file
-data = pd.read_csv('/work1/avima/Ab_interface/Data_extract/Summary_all_sorted_nonredundant_index.csv', sep=';', header=0)
+def main(summary_data_path: Path, pdb_path: Path, output_path: Path):
+	# Set number of multiprocesses
+	mul = 16
+
+	# Loading in the data from the summary file
+	data = pd.read_csv(summary_data_path, sep=';', header=0)
+	results = Pool(mul).map(pool_runner, data.iterrows())
+
+	results_contact = pd.concat([x[0] for x in results]).reset_index(drop=True)
+	results_contact.to_parquet(output_path / 'Output_contact.parquet')
+
+	results_ref = pd.concat([x[1] for x in results]).reset_index(drop=True)
+	results_ref.to_parquet(output_path / 'Output_ref.parquet')
+
 
 if __name__ == '__main__':
-	pool = Pool(mul)
-	results = pool.map(main_func, data.iterrows())
-
-	results_contact = pd.concat([x[0] for x in results])
-	results_contact.to_csv('Output_contact.csv', sep=';')
-
-	results_ref = pd.concat([x[1] for x in results])
-	results_ref.to_csv('Output_ref.csv', sep=';')
+	main(Path('test/work_dir/Summary_all_sorted_nonredundant_index.csv'), Path("."), Path("."))

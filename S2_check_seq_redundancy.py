@@ -1,11 +1,11 @@
 from pathlib import Path
 from argparse import ArgumentParser
-from pandas import read_feather, DataFrame
+from pandas import read_parquet, DataFrame
 from shared_funcs import get_ab_type
 
 
 def main(summary_data_path: Path, cluster_path: Path, output_path: Path):
-	summary_data = read_feather(summary_data_path)
+	summary_data = read_parquet(summary_data_path)
 	file1_list = []
 	pdb_list = []
 	resolution_list = []
@@ -92,7 +92,7 @@ def main(summary_data_path: Path, cluster_path: Path, output_path: Path):
 			file1_list.append(row)
 
 	data2 = DataFrame(file1_list)
-	data2.to_feather(output_path / 'Summary_all_sorted_nonredundant.fea.zst', compression='zstd')
+	data2.to_parquet(output_path / 'Summary_all_sorted_nonredundant.parquet')
 
 
 if __name__ == '__main__':
