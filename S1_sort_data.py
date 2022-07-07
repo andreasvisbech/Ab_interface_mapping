@@ -1,5 +1,5 @@
 from pathlib import Path
-from argparse import ArgumentParser
+import argparse
 from pandas import read_csv, DataFrame, concat
 from Bio.PDB import PDBParser
 from Bio import SeqIO
@@ -238,10 +238,10 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path, csv_output:
 
 
 if __name__ == "__main__":
-	argparser = ArgumentParser()
-	argparser.add_argument("-s", default=Path('test/work_dir/Summary_all.tsv'), type=Path, help="Path to Summary_all.tsv")
-	argparser.add_argument("-p", default=Path('test/work_dir/imgt_all_clean'), type=Path, help="Path folder with pdb files")
-	argparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
-	argparser.add_argument("--csv", action='store_true', help="Also output csv format")
-	args = argparser.parse_args()
+	aparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	aparser.add_argument("-s", default=Path('test/work_dir/Summary_all.tsv'), type=Path, help="Path to Summary_all.tsv")
+	aparser.add_argument("-p", default=Path('test/work_dir/imgt_all_clean'), type=Path, help="Path folder with pdb files")
+	aparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
+	aparser.add_argument("--csv", action='store_true', help="Also output csv format")
+	args = aparser.parse_args()
 	main(summary_data_path=args.s, pdb_path=args.p, output_path=args.o, csv_output=args.csv)

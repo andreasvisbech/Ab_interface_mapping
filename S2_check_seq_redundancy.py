@@ -1,5 +1,5 @@
 from pathlib import Path
-from argparse import ArgumentParser
+import argparse
 from pandas import read_parquet, DataFrame
 from shared_funcs import get_ab_type
 
@@ -98,10 +98,10 @@ def main(summary_data_path: Path, cluster_path: Path, output_path: Path, csv_out
 
 
 if __name__ == '__main__':
-	argparser = ArgumentParser()
-	argparser.add_argument("-s", default=Path('test/work_dir/Summary_all_sorted.parquet'), type=Path, help="Path to Summary_all_sorted.parquet")
-	argparser.add_argument("-c", default=Path('test/work_dir/Cluster.txt'), type=Path, help="Path to Cluster.txt")
-	argparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
-	argparser.add_argument("--csv", action='store_true', help="Also output csv format")
-	args = argparser.parse_args()
+	aparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	aparser.add_argument("-s", default=Path('test/work_dir/Summary_all_sorted.parquet'), type=Path, help="Path to Summary_all_sorted.parquet")
+	aparser.add_argument("-c", default=Path('test/work_dir/Cluster.txt'), type=Path, help="Path to Cluster.txt")
+	aparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
+	aparser.add_argument("--csv", action='store_true', help="Also output csv format")
+	args = aparser.parse_args()
 	main(args.s, args.c, args.o, args.csv)

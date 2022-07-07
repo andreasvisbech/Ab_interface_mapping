@@ -6,7 +6,7 @@ from Bio.PDB.DSSP import DSSP
 from multiprocessing import Pool
 from pathlib import Path
 from itertools import repeat
-from argparse import ArgumentParser
+import argparse
 from shared_funcs import aa_list, get_ab_type
 
 
@@ -233,17 +233,6 @@ def Ab_raw_extract(structure, index):
 	return out_list
 
 
-def prepend_header(pdb_file_path: Path):
-	pdb_name = pdb_file_path.stem
-	fake_header = f'HEADER\tIMGT RENUMBERED STRUCTURE\t08/03/1983\t{pdb_name}\n'
-
-	with open(pdb_file_path, 'r+') as pdb_file:
-		c = pdb_file.read()  # read existing
-		if not c.startswith("HEADER"):  # check if header already exists
-			pdb_file.seek(0, 0)
-			pdb_file.write(fake_header + "\n" + c)
-
-
 def pool_runner(row: pd.Series, pdb_path: Path):
 	row = row[1]  # row = (id, actual row)
 	contact_cutoff = 5
@@ -309,7 +298,7 @@ def pool_runner(row: pd.Series, pdb_path: Path):
 	pdb1 = pdb_path / f"{row.pdb}.pdb"
 	parser = PDBParser()
 	structure = parser.get_structure("structure", pdb1)
-	dssp_dict = DSSP(structure[0], pdb1, dssp="/home/laeb/Downloads/dssp-2.0.4-linux-amd64")
+	dssp_dict = DSSP(structure[0], pdb1, dssp="./dssp")
 	pdb_type = row['Antigen group']  # Get antigen type
 	resolution = row['resolution']  # Get structure resolution
 	vh_organism = row['heavy_species']  # Get structure H chain organism
@@ -469,8 +458,9 @@ def pool_runner(row: pd.Series, pdb_path: Path):
 def main(summary_data_path: Path, pdb_path: Path, output_path: Path, threads: int, csv_output: bool):
 	# Loading in the data from the summary file
 	data = pd.read_parquet(summary_data_path)
+	print(f"Splitting work-load on {threads} threads")
 	results = Pool(threads).starmap(pool_runner, zip(data.iterrows(), repeat(pdb_path)))
-
+	print(f"Outputting results to {output_path}")
 	results_contact = pd.concat([x[0] for x in results]).reset_index(drop=True)
 	results_contact.to_parquet(output_path / 'Output_contact.parquet')
 
@@ -478,15 +468,20 @@ def main(summary_data_path: Path, pdb_path: Path, output_path: Path, threads: in
 	results_ref.to_parquet(output_path / 'Output_ref.parquet')
 
 	if csv_output:
-		results_contact.to_csv(output_path / 'Output_contact.parquet')
-		results_ref.to_csv(output_path / 'Output_ref.parquet')
+		results_contact.to_csv(output_path / 'Output_contact.csv')
+		results_ref.to_csv(output_path / 'Output_ref.csv')
 
 
 if __name__ == '__main__':
-	argparser = ArgumentParser()
-	argparser.add_argument("-s", default=Path('test/work_dir/Summary_all_sorted_nonredundant.parquet'), type=Path, help="Path to Summary_all_sorted_nonredundant.parquet")
-	argparser.add_argument("-p", default=Path("test/work_dir/imgt_all_clean_align"), type=Path, help="Path folder with pdb files")
-	argparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
-	argparser.add_argument("--csv", action='store_true', help="Also output csv format")
-	args = argparser.parse_args()
-	main(args.s, args.p, args.o, 4, args.csv)
+	aparser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	aparser.add_argument("-s", default=Path('test/work_dir/Summary_all_sorted_nonredundant.parquet'), type=Path, help="Path to Summary_all_sorted_nonredundant.parquet")
+	aparser.add_argument("-p", default=Path("test/work_dir/imgt_all_clean_align"), type=Path, help="Path folder with pdb files")
+	aparser.add_argument("-o", default=Path('.'), type=Path, help="Path to write output to")
+	aparser.add_argument("-t", default=4, type=int, help="Number of threads to use")
+	aparser.add_argument("--csv", action='store_true', help="Also output csv format")
+	aparser.add_argument("--add_headers", action="store_true", help="Add headers to the pdb files. Needed for dssp version 4.")
+	args = aparser.parse_args()
+	if args.add_headers:
+		from shared_funcs import prepend_headers
+		prepend_headers(args.p)
+	main(args.s, args.p, args.o, args.t, args.csv)
