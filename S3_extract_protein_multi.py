@@ -233,6 +233,17 @@ def Ab_raw_extract(structure, index):
 	return out_list
 
 
+def prepend_header(pdb_file_path: Path):
+	pdb_name = pdb_file_path.stem
+	fake_header = f'HEADER\tIMGT RENUMBERED STRUCTURE\t08/03/1983\t{pdb_name}\n'
+
+	with open(pdb_file_path, 'r+') as pdb_file:
+		c = pdb_file.read()  # read existing
+		if not c.startswith("HEADER"):  # check if header already exists
+			pdb_file.seek(0, 0)
+			pdb_file.write(fake_header + "\n" + c)
+
+
 def pool_runner(row: pd.Series, pdb_path: Path):
 	row = row[1]  # row = (id, actual row)
 	contact_cutoff = 5
