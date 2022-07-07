@@ -94,7 +94,7 @@ def main(summary_data_path: Path, cluster_path: Path, output_path: Path, csv_out
 	data2 = DataFrame(file1_list)
 	data2.to_parquet(output_path / 'Summary_all_sorted_nonredundant.parquet')
 	if csv_output:
-		data2.to_csv(output_path / 'Summary_all_sorted_nonredundant.parquet')
+		data2.to_csv(output_path / 'Summary_all_sorted_nonredundant.csv')
 
 
 if __name__ == '__main__':
