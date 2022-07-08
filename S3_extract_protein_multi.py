@@ -483,5 +483,6 @@ if __name__ == '__main__':
 	args = aparser.parse_args()
 	if args.add_headers:
 		from shared_funcs import prepend_headers
+
 		prepend_headers(args.p)
 	main(args.s, args.p, args.o, args.t, args.csv)

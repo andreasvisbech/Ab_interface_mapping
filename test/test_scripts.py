@@ -40,3 +40,16 @@ class TestScripts:
 		test_ref = read_parquet(tmp_path / "Output_ref.parquet")
 		verified_ref = read_parquet("test/work_dir/Output_ref.parquet")
 		testing.assert_frame_equal(test_ref, verified_ref)
+
+	def test_script4(self, tmp_path):
+		from S4_Analysis_multi import main
+		main(
+			output_ref=Path('test/work_dir/Output_ref.parquet'),
+			output_contact=Path('test/work_dir/Output_contact.parquet'),
+			output_path=Path(tmp_path),
+			threads=4,
+			csv_output=False
+		)
+		test = read_parquet(tmp_path / "Output_Analysis.parquet")
+		verified = read_parquet("test/work_dir/Output_Analysis.parquet")
+		testing.assert_frame_equal(test, verified)
