@@ -2,22 +2,22 @@ from multiprocessing import Pool
 import pandas as pd
 import argparse
 from pathlib import Path
+from shared_funcs import aa_list, domain_list
 
 
 def get_ab_type(df):
 	"""
 	Get a list of the antibody types
-	:param df:
-	:return:
+	:param df: A dataframe containing "Ab type" column
+	:return: The singular unique value of "Ab type"
 	"""
-	Ab_type_list = df['Ab type'].tolist()
-	Ab_type_list = list(dict.fromkeys(Ab_type_list))
+	ab_type_list = df['Ab type'].unique()
 
-	if len(Ab_type_list) > 1:
-		print(Ab_type_list)
+	if len(ab_type_list) > 1:
+		print(ab_type_list)
 		print('The pdb entry contains more than one Ab type!?')
 
-	return Ab_type_list[0]
+	return ab_type_list[0]
 
 
 def get_target_type(df):
@@ -26,8 +26,7 @@ def get_target_type(df):
 	:param df:
 	:return:
 	"""
-	target_type_list = df['Antigen type'].tolist()
-	target_type_list = list(dict.fromkeys(target_type_list))
+	target_type_list = df['Antigen type'].unique()
 
 	if len(target_type_list) > 1:
 		print(target_type_list)
@@ -36,146 +35,173 @@ def get_target_type(df):
 	return target_type_list[0]
 
 
-def unique_contact_resi(df, Ab_resi_specific_filter_list):
+def unique_contact_resi(df, ab_resi_specific_filter_list):
+	"""
+	Counts total CDR contacts by dropping rows that are duplicate on antibody chain, residue ID, residue name and CDR.
+	:param df:
+	:param ab_resi_specific_filter_list:
+	:return:
+	"""
+	return len(df.drop_duplicates(subset=ab_resi_specific_filter_list))
+
+
+def unique_contact_atom(df, ab_atom_specific_filter_list):
 	"""
 	Function counts total CDR contacts by dropping rows that are duplicate on antibody chain, residue ID, residue name and CDR.
 	:param df:
-	:param Ab_resi_specific_filter_list:
+	:param ab_atom_specific_filter_list:
 	:return:
 	"""
-	return df.drop_duplicates(subset=Ab_resi_specific_filter_list, keep='last').shape[0]
+	return len(df.drop_duplicates(subset=ab_atom_specific_filter_list, keep='last'))
 
 
-def unique_contact_atom(df, Ab_atom_specific_filter_list):
+def epitope_resi_contact(df, ag_resi_specific_filter_list):
 	"""
-	Function counts total CDR contacts by dropping rows that are duplicate on antibody chain, residue ID, residue name and CDR.
+
 	:param df:
-	:param Ab_atom_specific_filter_list:
+	:param ag_resi_specific_filter_list:
 	:return:
 	"""
-	return df.drop_duplicates(subset=Ab_atom_specific_filter_list, keep='last').shape[0]
+	return len(df.drop_duplicates(subset=ag_resi_specific_filter_list, keep='last'))
 
 
-def epitope_resi_contact(df, Ag_resi_specific_filter_list):
-	return df.drop_duplicates(subset=Ag_resi_specific_filter_list, keep='last').shape[0]
+def epitope_atom_contact(df, ag_atom_specific_filter_list):
+	"""
+
+	:param df:
+	:param ag_atom_specific_filter_list:
+	:return:
+	"""
+	return len(df.drop_duplicates(subset=ag_atom_specific_filter_list, keep='last'))
 
 
-def epitope_atom_contact(df, Ag_atom_specific_filter_list):
-	return df.drop_duplicates(subset=Ag_atom_specific_filter_list, keep='last').shape[0]
-
-
-def Ab_aa_count(df, residue, Ab_resi_specific_filter_list):
+def Ab_aa_count(df, residue, ab_resi_specific_filter_list):
 	"""
 	The function calculates the count of a specific amino acid in the paratope data
 	:param df:
 	:param residue:
-	:param Ab_resi_specific_filter_list:
+	:param ab_resi_specific_filter_list:
 	:return:
 	"""
 	# Get unique residues on the antibody
-	func_df = df.drop_duplicates(subset=Ab_resi_specific_filter_list, keep='last')
+	func_df = df.drop_duplicates(subset=ab_resi_specific_filter_list, keep='last')
 	# Get all the rows where the amino acid is the same as specified by user.
 	func_df2 = func_df.loc[func_df['Ab resi aa'] == residue]
 
-	return func_df2.shape[0]
+	return len(func_df2)
 
 
-def Ag_aa_count(df, residue, Ag_resi_specific_filter_list):
+def Ag_aa_count(df, residue, ag_resi_specific_filter_list):
 	"""
 	The function calculates the count of a specific amino acid in the epitope data
 	:param df:
 	:param residue:
-	:param Ag_resi_specific_filter_list:
+	:param ag_resi_specific_filter_list:
 	:return:
 	"""
 	# Get unique residues on the antigen
-	func_df = df.drop_duplicates(subset=Ag_resi_specific_filter_list, keep='last')
+	func_df = df.drop_duplicates(subset=ag_resi_specific_filter_list, keep='last')
 
 	# Get all the rows where the amino acid is the same as specified by user.
 	func_df2 = func_df.loc[func_df['Ag resi aa'] == residue]
 
-	return func_df2.shape[0]
+	return len(func_df2)
 
 
-def total_resi_in_each_domain(df, Ab_domain, Ab_resi_specific_filter_list):
+def total_in_each_domain(df, ab_domain, ab_specific_filter_list):
+	"""
+
+	:param df:
+	:param ab_domain:
+	:param ab_specific_filter_list:
+	:return:
+	"""
 	# Drop duplicates in the data to only get unique residues
-	df_NR = df.drop_duplicates(subset=Ab_resi_specific_filter_list, keep='last')
+	df_nr = df.drop_duplicates(subset=ab_specific_filter_list, keep='last')
 	# The chain (VH or VL) is specified as the first two letters in the domain (e.g. "VH FR1"
-	chain = Ab_domain[0:2]
+	chain = ab_domain[0:2]
 	# The domain, e.g. CDR1 is specified similar to above only it is the last part of the string.
-	domain = Ab_domain[3:]
-	data_slice1 = df_NR[df_NR['Ab chain type (VH/VL)'] == chain]
+	domain = ab_domain[3:]
+	data_slice1 = df_nr[df_nr['Ab chain type (VH/VL)'] == chain]
 	data_slice2 = data_slice1[data_slice1['Ab domain'] == domain]
-	domain_count = data_slice2.shape[0]
-	return domain_count
+	return len(data_slice2)
 
 
-def total_atom_in_each_domain(df, Ab_domain, Ab_atom_specific_filter_list):
-	# Drop duplicates in the data to only get unique residues
-	df_NR = df.drop_duplicates(subset=Ab_atom_specific_filter_list, keep='last')
+def total_contacts_in_domain(data, ab_domain):
+	"""
+
+	:param data:
+	:param ab_domain:
+	:return:
+	"""
 	# The chain (VH or VL) is specified as the first two letters in the domain (e.g. "VH FR1"
-	chain = Ab_domain[0:2]
+	chain = ab_domain[0:2]
 	# The domain, e.g. CDR1 is specified similar to above only it is the last part of the string.
-	domain = Ab_domain[3:]
-	data_slice1 = df_NR[df_NR['Ab chain type (VH/VL)'] == chain]
-	data_slice2 = data_slice1[data_slice1['Ab domain'] == domain]
-	domain_count = data_slice2.shape[0]
-	return domain_count
-
-
-def total_contacts_in_domain(data, Ab_domain):
-	# The chain (VH or VL) is specified as the first two letters in the domain (e.g. "VH FR1"
-	chain = Ab_domain[0:2]
-	# The domain, e.g. CDR1 is specified similar to above only it is the last part of the string.
-	domain = Ab_domain[3:]
+	domain = ab_domain[3:]
 	data_slice1 = data[data['Ab chain type (VH/VL)'] == chain]
 	data_slice2 = data_slice1[data_slice1['Ab domain'] == domain]
-	domain_count = data_slice2.shape[0]
 
-	return domain_count
+	return len(data_slice2)
 
 
-def aa_freq_in_domains(df, Ab_domain, aa, Ab_resi_specific_filter_list):
+def aa_freq_in_domains(df, ab_domain, aa, ab_resi_specific_filter_list):
+	"""
+
+	:param df:
+	:param ab_domain:
+	:param aa:
+	:param ab_resi_specific_filter_list:
+	:return:
+	"""
 	# The chain (VH or VL) is specified as the first two letters in the domain (e.g. "VH FR1"
-	chain = Ab_domain[0:2]
+	chain = ab_domain[0:2]
 	# The domain, e.g. CDR1 is specified similar to above only it is the last part of the string.
-	domain = Ab_domain[3:]
-	df_NR = df.drop_duplicates(subset=Ab_resi_specific_filter_list)
-	data_slice1 = df_NR[df_NR['Ab chain type (VH/VL)'] == chain]
+	domain = ab_domain[3:]
+	df_nr = df.drop_duplicates(subset=ab_resi_specific_filter_list)
+	data_slice1 = df_nr[df_nr['Ab chain type (VH/VL)'] == chain]
 	data_slice2 = data_slice1[data_slice1['Ab domain'] == domain]
 	data_slice3 = data_slice2[data_slice2['Ab resi aa'] == aa]
-	aa_count = data_slice3.shape[0]
-	return aa_count
+	return len(data_slice3)
 
 
 def get_chain_organisms(df):
-	H_chain_organism = df['H chain organism'].tolist()
-	L_chain_organism = df['L chain organism'].tolist()
-	H_chain_organism = list(dict.fromkeys(H_chain_organism))
-	L_chain_organism = list(dict.fromkeys(L_chain_organism))
-	if len(H_chain_organism) > 1:
+	"""
+
+	:param df:
+	:return:
+	"""
+	h_chain_organism = df['H chain organism'].unique()
+	l_chain_organism = df['L chain organism'].unique()
+	if len(h_chain_organism) > 1:
 		print('More than one H chain organism found!')
 
-	if len(L_chain_organism) > 1:
+	if len(l_chain_organism) > 1:
 		print('More than one L chain organism found')
 
-	return H_chain_organism[0], L_chain_organism[0]
+	return h_chain_organism[0], l_chain_organism[0]
 
 
-def get_domain_lengths_ref(df, Ab_domain):
-	count = df['#aa in ' + Ab_domain + ' (ref)'].tolist()
-	count = list(dict.fromkeys(count))
+def get_domain_lengths_ref(df, ab_domain):
+	"""
+
+	:param df:
+	:param ab_domain:
+	:return:
+	"""
+	count = df['#aa in ' + ab_domain + ' (ref)'].unique()
 	return count[0]
 
 
 def pool_runner(grouped_by_pdb_df):
-	# Defining local variables
-	Ab_resi_specific_filter_list = ['PDB', 'Ab chain type (VH/VL)', 'Ab resi ID', 'Ab resi aa']
-	Ab_atom_specific_filter_list = ['PDB', 'Ab chain type (VH/VL)', 'Ab resi ID', 'Ab resi aa', 'Ab atom']
-	Ag_resi_specific_filter_list = ['PDB', 'Ag chain ID', 'Ag resi ID', 'Ag resi aa']
-	Ag_atom_specific_filter_list = ['PDB', 'Ag chain ID', 'Ag resi ID', 'Ag resi aa', 'Ag atom']
-	Ab_domains = ['VH FR1', 'VH CDR1', 'VH FR2', 'VH CDR2', 'VH FR3', 'VH CDR3', 'VH FR4', 'VL FR1', 'VL CDR1', 'VL FR2', 'VL CDR2', 'VL FR3', 'VL CDR3', 'VL FR4']
-	aa_list = ['ARG', 'HIS', 'LYS', 'ASP', 'GLU', 'SER', 'THR', 'ASN', 'GLN', 'CYS', 'GLY', 'PRO', 'ALA', 'ILE', 'LEU', 'MET', 'PHE', 'TRP', 'TYR', 'VAL']
+	"""
+
+	:param grouped_by_pdb_df:
+	:return:
+	"""
+	ab_resi_specific_filter_list = ['PDB', 'Ab chain type (VH/VL)', 'Ab resi ID', 'Ab resi aa']
+	ab_atom_specific_filter_list = ['PDB', 'Ab chain type (VH/VL)', 'Ab resi ID', 'Ab resi aa', 'Ab atom']
+	ag_resi_specific_filter_list = ['PDB', 'Ag chain ID', 'Ag resi ID', 'Ag resi aa']
+	ag_atom_specific_filter_list = ['PDB', 'Ag chain ID', 'Ag resi ID', 'Ag resi aa', 'Ag atom']
 
 	# Defining lists for output
 	master_dict = {
@@ -184,16 +210,10 @@ def pool_runner(grouped_by_pdb_df):
 		'No. epitope residues': [], 'No. epitope atoms': [], '#Resi in VH': [], '#Resi in VL': []
 	}
 
-	for a in Ab_domains:
+	for a in domain_list:
 		master_dict['#Resi in ' + str(a)] = []
-
-	for a in Ab_domains:
 		master_dict['#Resi in ' + str(a) + ' (ref)'] = []
-
-	for a in Ab_domains:
 		master_dict['#Atom in ' + str(a)] = []
-
-	for a in Ab_domains:
 		master_dict['Total contacts in ' + str(a)] = []
 
 	for a in aa_list:
@@ -201,9 +221,7 @@ def pool_runner(grouped_by_pdb_df):
 		master_dict['#' + str(a) + ' in VH'] = []
 		master_dict['#' + str(a) + ' in VL'] = []
 		master_dict['#' + str(a) + ' in Ag'] = []
-
-	for a in aa_list:
-		for b in Ab_domains:
+		for b in domain_list:
 			master_dict['#' + str(a) + ' in ' + str(b)] = []
 
 	pdb_id = grouped_by_pdb_df[0]
@@ -211,99 +229,92 @@ def pool_runner(grouped_by_pdb_df):
 	print(pdb_id)
 
 	data_new = grouped_by_pdb_df[1][grouped_by_pdb_df[1]['kilde'] == 'data']
-	data_new_ref = grouped_by_pdb_df[1][grouped_by_pdb_df[1]['kilde'] == 'ref']
 
 	# Get the count of residues in the different domains in the antibody
-	data_new_VH = data_new.loc[data_new['Ab chain type (VH/VL)'] == 'VH']
-	data_new_VL = data_new.loc[data_new['Ab chain type (VH/VL)'] == 'VL']
+	data_new_vh = data_new.loc[data_new['Ab chain type (VH/VL)'] == 'VH']
+	data_new_vl = data_new.loc[data_new['Ab chain type (VH/VL)'] == 'VL']
 
 	# Getting the antibody type for the specific pdb
-	Ab_type = get_ab_type(data_new)
-	master_dict['Ab type'].append(Ab_type)
+	ab_type = get_ab_type(data_new)
+	master_dict['Ab type'].append(ab_type)
 
 	# Getting the target type for the specific pdb. This can be protein or peptide
 	target_type = get_target_type(data_new)
 	master_dict['Antigen type'].append(target_type)
 
 	# Getting species for each of the chains
-	H_chain_organism, L_chain_organism = get_chain_organisms(data_new)
-	master_dict['Hchain species'].append(H_chain_organism)
-	master_dict['Lchain species'].append(L_chain_organism)
+	h_chain_organism, l_chain_organism = get_chain_organisms(data_new)
+	master_dict['Hchain species'].append(h_chain_organism)
+	master_dict['Lchain species'].append(l_chain_organism)
 
 	# Get the total number of unique contacts in the given structure
-	total_contacts = data_new.shape[0]
+	total_contacts = len(data_new)
 	master_dict['No. of total contacts'].append(total_contacts)
 
 	# Get the total number of unique antibody amino acid residues in the interface
-	Ab_contact_resi = unique_contact_resi(data_new, Ab_resi_specific_filter_list)
-	master_dict['No. paratope residues'].append(Ab_contact_resi)
+	ab_contact_resi = unique_contact_resi(data_new, ab_resi_specific_filter_list)
+	master_dict['No. paratope residues'].append(ab_contact_resi)
 
 	# Get the total number of unique antibody amino acid residues in the interface in each of the chains
-	Ab_contact_resi_VH = unique_contact_resi(data_new_VH, Ab_resi_specific_filter_list)
-	master_dict['#Resi in VH'].append(Ab_contact_resi_VH)
-	Ab_contact_resi_VL = unique_contact_resi(data_new_VL, Ab_resi_specific_filter_list)
-	master_dict['#Resi in VL'].append(Ab_contact_resi_VL)
+	ab_contact_resi_vh = unique_contact_resi(data_new_vh, ab_resi_specific_filter_list)
+	master_dict['#Resi in VH'].append(ab_contact_resi_vh)
+	ab_contact_resi_vl = unique_contact_resi(data_new_vl, ab_resi_specific_filter_list)
+	master_dict['#Resi in VL'].append(ab_contact_resi_vl)
 
 	# Get the total number of unique antibody atoms in the interface
-	Ab_contact_atom = unique_contact_atom(data_new, Ab_atom_specific_filter_list)
-	master_dict['No. paratope atoms'].append(Ab_contact_atom)
-	# Ab_contact_atom_list.append(Ab_contact_atom)
-	# master_dict['unique #atom in Ab'].append(Ab_contact_atom)
+	ab_contact_atom = unique_contact_atom(data_new, ab_atom_specific_filter_list)
+	master_dict['No. paratope atoms'].append(ab_contact_atom)
 
 	# Get total number of unique residues on the epitope
-	epi_contact_resi = epitope_resi_contact(data_new, Ag_resi_specific_filter_list)
+	epi_contact_resi = epitope_resi_contact(data_new, ag_resi_specific_filter_list)
 	master_dict['No. epitope residues'].append(epi_contact_resi)
-	# Ag_contact_resi_list.append(epi_contact_resi)
-	# master_dict['unique #aa in Ag'].append(epi_contact_resi)
 
 	# Get total number of unique atoms on the epitope
-	epi_contact_atom = epitope_atom_contact(data_new, Ag_atom_specific_filter_list)
+	epi_contact_atom = epitope_atom_contact(data_new, ag_atom_specific_filter_list)
 	master_dict['No. epitope atoms'].append(epi_contact_atom)
-	# Ag_contact_atom_list.append(epi_contact_atom)
-	# master_dict['unique #atom in Ag'].append(epi_contact_atom)
 
 	# Get total count of residues in antibody paratope
 	for a in aa_list:
-		aa_count = Ab_aa_count(data_new, a, Ab_resi_specific_filter_list)
+		aa_count = Ab_aa_count(data_new, a, ab_resi_specific_filter_list)
 		master_dict['#' + str(a) + ' in Ab'].append(aa_count)
 
-		aa_count_VH = Ab_aa_count(data_new_VH, a, Ab_resi_specific_filter_list)
-		master_dict['#' + str(a) + ' in VH'].append(aa_count_VH)
+		aa_count_vh = Ab_aa_count(data_new_vh, a, ab_resi_specific_filter_list)
+		master_dict['#' + str(a) + ' in VH'].append(aa_count_vh)
 
-		aa_count_VL = Ab_aa_count(data_new_VL, a, Ab_resi_specific_filter_list)
-		master_dict['#' + str(a) + ' in VL'].append(aa_count_VL)
+		aa_count_vl = Ab_aa_count(data_new_vl, a, ab_resi_specific_filter_list)
+		master_dict['#' + str(a) + ' in VL'].append(aa_count_vl)
 
 	# Get total count of residues in the antigen epitope
 	for a in aa_list:
-		aa_count = Ag_aa_count(data_new, a, Ag_resi_specific_filter_list)
+		aa_count = Ag_aa_count(data_new, a, ag_resi_specific_filter_list)
 		master_dict['#' + str(a) + ' in Ag'].append(aa_count)
 
 	# Get total count of unique residues in each of the paratope domains
-	for a in Ab_domains:
-		domain_count = total_resi_in_each_domain(data_new, a, Ab_resi_specific_filter_list)
+	for a in domain_list:
+		domain_count = total_in_each_domain(data_new, a, ab_resi_specific_filter_list)
 		master_dict['#Resi in ' + str(a)].append(domain_count)
 
 	# Get total count of residues in the reference data i.e. the domain lengths irrespective of if they are contact or not.
-	for a in Ab_domains:
+	for a in domain_list:
 		domain_length = get_domain_lengths_ref(data_new, a)
 		master_dict['#Resi in ' + str(a) + ' (ref)'].append(domain_length)
 
 	# Get total count of unique atoms in each of the paratope domains
-	for a in Ab_domains:
-		domain_count = total_atom_in_each_domain(data_new, a, Ab_atom_specific_filter_list)
+	for a in domain_list:
+		domain_count = total_in_each_domain(data_new, a, ab_atom_specific_filter_list)
 		master_dict['#Atom in ' + str(a)].append(domain_count)
 
 	# Get total count of contacts in each of the paratope domains
-	for a in Ab_domains:
+	for a in domain_list:
 		domain_count = total_contacts_in_domain(data_new, a)
 		master_dict['Total contacts in ' + str(a)].append(domain_count)
 
 	# Get count of the different amino acids in the different antibody domains of both VH and VL
-	for a in Ab_domains:
+	for a in domain_list:
 		# chain = a[:1]
 		# domain = a[len(a)-3:]
 		for b in aa_list:
-			my_var = aa_freq_in_domains(data_new, a, b, Ab_resi_specific_filter_list)
+			my_var = aa_freq_in_domains(data_new, a, b, ab_resi_specific_filter_list)
 			master_dict['#' + str(b) + ' in ' + str(a)].append(my_var)
 
 	df_out = pd.DataFrame.from_dict(master_dict)
@@ -312,6 +323,15 @@ def pool_runner(grouped_by_pdb_df):
 
 
 def main(output_ref: Path, output_contact: Path, output_path: Path, threads: int, csv_output: bool):
+	"""
+
+	:param output_ref:
+	:param output_contact:
+	:param output_path:
+	:param threads:
+	:param csv_output:
+	:return:
+	"""
 	data = pd.read_parquet(output_contact)
 	ref = pd.read_parquet(output_ref)
 	data['kilde'] = 'data'
