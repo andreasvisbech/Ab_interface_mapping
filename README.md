@@ -39,3 +39,7 @@ Dssp can either be compiled from source or installed via your linux package mana
 - summary file is hard coded on line 680
 
 # Script 4
+- AIM:
+	- Takes the file from script #3 containing contact points and calculates summary statistics. 
+
+  
