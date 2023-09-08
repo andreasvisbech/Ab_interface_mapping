@@ -1,7 +1,4 @@
-# Todo
 
-- Update readme
-- Check if biopython supports dssp 4 yet
 
 # DSSP
 DSSP is required for script 3. The latest version is dssp 4, but biopython, which we use to run dssp with, doesnt support version 4 yet (08/07/2022). So for now, you must use dssp 3 (dssp 2 will also work). You can edit script 3 to point to a specific dssp, but by default it will just try to run "dssp".  
